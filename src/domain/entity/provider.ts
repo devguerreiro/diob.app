@@ -14,10 +14,39 @@ export default class Provider extends User {
         private _jobs: Array<ProviderJob>
     ) {
         super(id, name, document, email, contact, dob);
+
+        this.validate();
     }
 
     get jobs(): Array<ProviderJob> {
         return this._jobs;
+    }
+
+    validate(): void {
+        super.validate();
+
+        if (this._jobs.length === 0)
+            throw new Error("Provider must have at least one job");
+    }
+
+    addJob(job: ProviderJob): void {
+        const jobIndex = this._jobs.findIndex((j) => j.id === job.id);
+
+        if (jobIndex !== -1)
+            throw new Error("It's not possible to add the same job twice");
+
+        this._jobs.push(job);
+    }
+
+    removeJob(job: ProviderJob): void {
+        const jobIndex = this._jobs.findIndex((j) => j.id === job.id);
+
+        if (jobIndex === -1)
+            throw new Error(
+                "It's not possible to remove a non-practicable job"
+            );
+
+        this._jobs.splice(jobIndex, 1);
     }
 }
 

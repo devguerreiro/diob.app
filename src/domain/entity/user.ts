@@ -10,9 +10,7 @@ export default abstract class User {
         private _email: UserEmail,
         private _contact: UserContact,
         private _dob: Date
-    ) {
-        this.validate();
-    }
+    ) {}
 
     get id(): string {
         return this._id;
@@ -51,7 +49,7 @@ export default abstract class User {
     }
 
     validate(): void {
-        const age = dayjs().diff(dayjs(this.dob), "year");
+        const age = dayjs().diff(dayjs(this._dob), "year");
 
         if (age < 18) {
             throw new Error(`${this.constructor.name} must not be underage`);

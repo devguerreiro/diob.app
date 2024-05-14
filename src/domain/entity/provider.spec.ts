@@ -18,13 +18,20 @@ const makeValidProvider = () =>
 
 describe("Provider Entity", () => {
     it("should not be underage", () => {
+        const provider = makeValidProvider();
         // 17 years ago
         const dob = dayjs().subtract(17, "year").toDate();
 
         expect(() => {
-            const _ = new Provider("1", "Name", document, email, contact, dob, [
-                job,
-            ]);
+            const _ = new Provider(
+                provider.id,
+                provider.name,
+                provider.document,
+                provider.email,
+                provider.contact,
+                dob,
+                provider.jobs
+            );
         }).toThrow("Provider must not be underage");
     });
 
@@ -56,5 +63,80 @@ describe("Provider Entity", () => {
         provider.changeContact(newContact);
 
         expect(provider.contact).toBe(newContact);
+    });
+
+    it("should not be able to create a provider without job", () => {
+        const provider = makeValidProvider();
+
+        expect(() => {
+            const _ = new Provider(
+                provider.id,
+                provider.name,
+                provider.document,
+                provider.email,
+                provider.contact,
+                provider.dob,
+                []
+            );
+        }).toThrow("Provider must have at least one job");
+    });
+
+    it("should be able to add new jobs", () => {
+        const provider = makeValidProvider();
+        const newJob = new ProviderJob("2", "Job", [jobService], 50);
+
+        provider.addJob(newJob);
+
+        expect(provider.jobs.length).toEqual(2);
+        expect(provider.jobs[0]).toBe(job);
+        expect(provider.jobs[1]).toBe(newJob);
+    });
+
+    it("should not be able to add same job", () => {
+        const provider = makeValidProvider();
+        const existingJob = provider.jobs[0];
+
+        const newJob = new ProviderJob(
+            existingJob.id,
+            existingJob.name,
+            existingJob.services,
+            existingJob.minCost
+        );
+
+        expect(() => {
+            provider.addJob(existingJob);
+        }).toThrow("It's not possible to add the same job twice");
+
+        expect(() => {
+            provider.addJob(newJob);
+        }).toThrow("It's not possible to add the same job twice");
+    });
+
+    it("should be able to remove jobs", () => {
+        const provider = makeValidProvider();
+        const newJob = new ProviderJob("2", "Job", [jobService], 50);
+
+        provider.addJob(newJob);
+
+        expect(provider.jobs.length).toEqual(2);
+        expect(provider.jobs[0]).toBe(job);
+        expect(provider.jobs[1]).toBe(newJob);
+
+        provider.removeJob(job);
+
+        expect(provider.jobs.length).toEqual(1);
+        expect(provider.jobs[0]).toBe(newJob);
+
+        provider.removeJob(newJob);
+        expect(provider.jobs.length).toEqual(0);
+    });
+
+    it("should not be able to remove a non-practicable job", () => {
+        const provider = makeValidProvider();
+        const newJob = new ProviderJob("2", "Job", [jobService], 50);
+
+        expect(() => {
+            provider.removeJob(newJob);
+        }).toThrow("It's not possible to remove a non-practicable job");
     });
 });

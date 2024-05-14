@@ -14,6 +14,8 @@ export default class Client extends User {
         private _address: ClientAddress
     ) {
         super(id, name, document, email, contact, dob);
+
+        this.validate();
     }
 
     get address(): ClientAddress {
