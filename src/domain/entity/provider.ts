@@ -56,7 +56,9 @@ export class ProviderJob implements JobInterface {
         private _name: string,
         private _services: Array<ProviderJobService>,
         private _minCost: number
-    ) {}
+    ) {
+        this.validate();
+    }
 
     get id(): string {
         return this._id;
@@ -72,6 +74,35 @@ export class ProviderJob implements JobInterface {
 
     get minCost(): number {
         return this._minCost;
+    }
+
+    validate(): void {
+        if (this._services.length === 0)
+            throw new Error("Provider job must have at least one service");
+    }
+
+    addService(service: ProviderJobService): void {
+        const serviceIndex = this._services.findIndex(
+            (s) => s.id === service.id
+        );
+
+        if (serviceIndex !== -1)
+            throw new Error("It's not possible to add the same service twice");
+
+        this._services.push(service);
+    }
+
+    removeService(service: ProviderJobService): void {
+        const serviceIndex = this._services.findIndex(
+            (j) => j.id === service.id
+        );
+
+        if (serviceIndex === -1)
+            throw new Error(
+                "It's not possible to remove a non-practicable service"
+            );
+
+        this._services.splice(serviceIndex, 1);
     }
 }
 
