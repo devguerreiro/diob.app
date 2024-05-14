@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 
-import Provider from "./provider";
+import Provider, { ProviderJob, ProviderJobService } from "./provider";
 
 import { UserContact, UserDocument, UserEmail } from "../value-object/user";
 
@@ -10,8 +10,11 @@ const contact = new UserContact("(47) 98877-6655");
 // 18 years ago
 const dob = dayjs().subtract(18, "year").toDate();
 
+const jobService = new ProviderJobService("1", "Service", 10);
+const job = new ProviderJob("1", "Job", [jobService], 50);
+
 const makeValidProvider = () =>
-    new Provider("1", "Name", document, email, contact, dob);
+    new Provider("1", "Name", document, email, contact, dob, [job]);
 
 describe("Provider Entity", () => {
     it("should not be underage", () => {
@@ -19,7 +22,9 @@ describe("Provider Entity", () => {
         const dob = dayjs().subtract(17, "year").toDate();
 
         expect(() => {
-            const _ = new Provider("1", "Name", document, email, contact, dob);
+            const _ = new Provider("1", "Name", document, email, contact, dob, [
+                job,
+            ]);
         }).toThrow("Provider must not be underage");
     });
 
