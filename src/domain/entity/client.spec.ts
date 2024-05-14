@@ -1,44 +1,23 @@
-import dayjs from "dayjs";
-
 import Client from "./client";
 
-import { UserContact, UserDocument, UserEmail } from "../value-object/user";
-import { ClientAddress } from "../value-object/client";
-
-const document = new UserDocument("881.971.600-31");
-const email = new UserEmail("email@email.com");
-const contact = new UserContact("(47) 98877-6655");
-const address = new ClientAddress("12345-678", 123);
-// 18 years ago
-const dob = dayjs().subtract(18, "year").toDate();
-
-const makeValidClient = () =>
-    new Client("1", "Name", document, email, contact, dob, address);
+import { makeFakeUserContact, makeFakeUserEmail } from "./user.spec.fixture";
+import {
+    makeFakeClient,
+    makeFakeClientAddress,
+    makeFakeUnderageClient,
+} from "./client.spec.fixture";
 
 describe("Client Entity", () => {
     it("should not be underage", () => {
-        // 17 years ago
-        const dob = dayjs().subtract(17, "year").toDate();
-
-        expect(() => {
-            const _ = new Client(
-                "1",
-                "Name",
-                document,
-                email,
-                contact,
-                dob,
-                address
-            );
-        }).toThrow("Client must not be underage");
+        expect(makeFakeUnderageClient).toThrow("Client must not be underage");
     });
 
-    it("should be able to create a client of legal age", () => {
-        expect(makeValidClient()).toBeInstanceOf(Client);
+    it("should be able to create if legal age", () => {
+        expect(makeFakeClient()).toBeInstanceOf(Client);
     });
 
     it("should be able to change its name", () => {
-        const client = makeValidClient();
+        const client = makeFakeClient();
 
         client.changeName("New Name");
 
@@ -46,27 +25,27 @@ describe("Client Entity", () => {
     });
 
     it("should be able to change its email", () => {
-        const client = makeValidClient();
+        const client = makeFakeClient();
 
-        const newEmail = new UserEmail("new@email.com");
+        const newEmail = makeFakeUserEmail();
         client.changeEmail(newEmail);
 
         expect(client.email).toBe(newEmail);
     });
 
     it("should be able to change its contact", () => {
-        const client = makeValidClient();
+        const client = makeFakeClient();
 
-        const newContact = new UserContact("(47) 91122-3344");
+        const newContact = makeFakeUserContact();
         client.changeContact(newContact);
 
         expect(client.contact).toBe(newContact);
     });
 
     it("should be able to change its address", () => {
-        const client = makeValidClient();
+        const client = makeFakeClient();
 
-        const newAddress = new ClientAddress("98765-432", 321);
+        const newAddress = makeFakeClientAddress();
         client.changeAddress(newAddress);
 
         expect(client.address).toBe(newAddress);
