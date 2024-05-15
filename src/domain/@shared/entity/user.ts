@@ -1,6 +1,10 @@
 import dayjs from "dayjs";
 
-import { UserDocument, UserContact, UserEmail } from "../value-object/user";
+import {
+    UserDocument,
+    UserContact,
+    UserEmail,
+} from "@/domain/@shared/value-object/user";
 
 export default abstract class User {
     constructor(

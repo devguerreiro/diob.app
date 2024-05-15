@@ -1,7 +1,12 @@
-import User from "./user";
+import User from "@/domain/@shared/entity/user";
 
-import { UserContact, UserDocument, UserEmail } from "../value-object/user";
-import { ClientAddress } from "../value-object/client";
+import {
+    UserContact,
+    UserDocument,
+    UserEmail,
+} from "@/domain/@shared/value-object/user";
+
+import { ClientAddress } from "@/domain/client/value-object/client";
 
 export default class Client extends User {
     constructor(

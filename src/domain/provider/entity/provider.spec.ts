@@ -1,6 +1,10 @@
 import Provider, { ProviderJob, ProviderJobService } from "./provider";
 
-import { makeFakeUserContact, makeFakeUserEmail } from "./user.spec.fixture";
+import {
+    makeFakeUserContact,
+    makeFakeUserEmail,
+} from "@/domain/@shared/entity/user.spec.fixture";
+
 import {
     makeFakeProviderJob,
     makeFakeProvider,

@@ -1,4 +1,4 @@
-import ValueObject from "../@shared/value-object";
+import ValueObject from "@/domain/@shared/value-object/index";
 
 type Value = {
     cep: string;

@@ -1,6 +1,6 @@
-import User from "./user";
-import Client from "./client";
-import Provider from "./provider";
+import User from "@/domain/@shared/entity/user";
+import Client from "@/domain/client/entity/client";
+import Provider from "@/domain/provider/entity/provider";
 
 enum JobRequestStatus {
     PENDING = "PENDING",

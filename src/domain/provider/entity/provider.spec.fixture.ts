@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 
-import { UserDocument } from "../value-object/user";
+import { UserDocument } from "@/domain/@shared/value-object/user";
 
 import Provider, { ProviderJob, ProviderJobService } from "./provider";
 
@@ -9,7 +9,7 @@ import {
     makeFakeUnderAgeUserDOB,
     makeFakeUserContact,
     makeFakeUserEmail,
-} from "./user.spec.fixture";
+} from "@/domain/@shared/entity/user.spec.fixture";
 
 export const makeFakeProviderJobService = () =>
     new ProviderJobService(

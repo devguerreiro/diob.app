@@ -1,7 +1,7 @@
 import { cpf } from "cpf-cnpj-validator";
 import * as EmailValidator from "email-validator";
 
-import ValueObject from "../@shared/value-object";
+import ValueObject from ".";
 
 export class UserDocument extends ValueObject<string> {
     validate(value: string): boolean {

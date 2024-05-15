@@ -1,6 +1,10 @@
 import Client from "./client";
 
-import { makeFakeUserContact, makeFakeUserEmail } from "./user.spec.fixture";
+import {
+    makeFakeUserContact,
+    makeFakeUserEmail,
+} from "@/domain/@shared/entity/user.spec.fixture";
+
 import {
     makeFakeClient,
     makeFakeClientAddress,

@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { faker } from "@faker-js/faker";
 
-import { UserContact, UserEmail } from "../value-object/user";
+import { UserContact, UserEmail } from "@/domain/@shared/value-object/user";
 
 export const makeFakeUserEmail = () => new UserEmail(faker.internet.email());
 

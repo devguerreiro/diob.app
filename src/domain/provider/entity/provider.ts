@@ -1,7 +1,15 @@
-import { UserContact, UserDocument, UserEmail } from "../value-object/user";
-import { JobInterface, JobServiceInterface } from "./job.interface";
+import User from "@/domain/@shared/entity/user";
 
-import User from "./user";
+import {
+    JobInterface,
+    JobServiceInterface,
+} from "@/domain/@shared/entity/job.interface";
+
+import {
+    UserContact,
+    UserDocument,
+    UserEmail,
+} from "@/domain/@shared/value-object/user";
 
 export default class Provider extends User {
     constructor(

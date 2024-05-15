@@ -1,16 +1,16 @@
 import { faker } from "@faker-js/faker";
 
-import { UserDocument } from "../value-object/user";
-import { ClientAddress } from "../value-object/client";
+import { UserDocument } from "@/domain/@shared/value-object/user";
+import { ClientAddress } from "@/domain/client/value-object/client";
+
+import Client from "./client";
 
 import {
     makeFakeLegalAgeUserDOB,
     makeFakeUnderAgeUserDOB,
     makeFakeUserContact,
     makeFakeUserEmail,
-} from "./user.spec.fixture";
-
-import Client from "./client";
+} from "@/domain/@shared/entity/user.spec.fixture";
 
 export const makeFakeClientAddress = () =>
     new ClientAddress(
