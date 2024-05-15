@@ -6,9 +6,11 @@
     "author": "Luis <luiscvlh11@gmail.com>",
     "license": "MIT",
     "dependencies": {
+        "@types/uuid": "^9.0.8",
         "cpf-cnpj-validator": "^1.0.3",
         "dayjs": "^1.11.11",
-        "email-validator": "^2.0.4"
+        "email-validator": "^2.0.4",
+        "uuid": "^9.0.1"
     },
     "devDependencies": {
         "@eslint/js": "^9.2.0",
