@@ -191,4 +191,21 @@ describe("Provider Entity", () => {
             existingJob.removeService(newJobService);
         }).toThrow("It's not possible to remove a non-practicable service");
     });
+
+    it("should calculate the total amount of the provider job", () => {
+        const provider = makeFakeProvider();
+        const providerJob = provider.jobs[0];
+        const totalProviderJobServices = providerJob.services.reduce(
+            (total, service) => total + service.cost,
+            0
+        );
+        const totalExpected = Math.max(
+            totalProviderJobServices,
+            providerJob.minCost
+        );
+
+        const totalCalculated = providerJob.totalCost;
+
+        expect(totalExpected).toEqual(totalCalculated);
+    });
 });

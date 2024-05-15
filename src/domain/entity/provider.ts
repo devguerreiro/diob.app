@@ -76,6 +76,14 @@ export class ProviderJob implements JobInterface {
         return this._minCost;
     }
 
+    get totalCost(): number {
+        const totalServices = this._services.reduce(
+            (total, service) => total + service.cost,
+            0
+        );
+        return Math.max(totalServices, this._minCost);
+    }
+
     validate(): void {
         if (this._services.length === 0)
             throw new Error("Provider job must have at least one service");
