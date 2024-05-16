@@ -2,7 +2,7 @@ import { faker } from "@faker-js/faker";
 
 import { UserDocument } from "@/domain/@shared/value-object/user";
 
-import Provider, { ProviderJob, ProviderJobService } from "./provider";
+import Provider, { ProviderWork, ProviderWorkJob } from "./provider";
 
 import {
     makeFakeLegalAgeUserDOB,
@@ -11,18 +11,18 @@ import {
     makeFakeUserEmail,
 } from "@/domain/@shared/entity/user.spec.fixture";
 
-export const makeFakeProviderJobService = () =>
-    new ProviderJobService(
+export const makeFakeProviderWorkJob = () =>
+    new ProviderWorkJob(
         faker.string.uuid(),
         faker.word.noun(),
         faker.number.float()
     );
 
-export const makeFakeProviderJob = () =>
-    new ProviderJob(
+export const makeFakeProviderWork = () =>
+    new ProviderWork(
         faker.string.uuid(),
         faker.word.noun(),
-        [makeFakeProviderJobService()],
+        [makeFakeProviderWorkJob()],
         faker.number.float()
     );
 
@@ -34,7 +34,7 @@ export const makeFakeProvider = () =>
         makeFakeUserEmail(),
         makeFakeUserContact(),
         makeFakeLegalAgeUserDOB(),
-        [makeFakeProviderJob()]
+        [makeFakeProviderWork()]
     );
 
 export const makeFakeUnderageProvider = () =>
@@ -45,10 +45,10 @@ export const makeFakeUnderageProvider = () =>
         makeFakeUserEmail(),
         makeFakeUserContact(),
         makeFakeUnderAgeUserDOB(),
-        [makeFakeProviderJob()]
+        [makeFakeProviderWork()]
     );
 
-export const makeFakeProviderWithoutJob = () =>
+export const makeFakeProviderWithoutWork = () =>
     new Provider(
         faker.string.uuid(),
         faker.person.fullName(),
@@ -59,8 +59,8 @@ export const makeFakeProviderWithoutJob = () =>
         []
     );
 
-export const makeFakeProviderJobWithoutService = () =>
-    new ProviderJob(
+export const makeFakeProviderWorkWithoutJob = () =>
+    new ProviderWork(
         faker.string.uuid(),
         faker.word.noun(),
         [],

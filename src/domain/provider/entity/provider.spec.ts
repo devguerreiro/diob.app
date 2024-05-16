@@ -1,4 +1,4 @@
-import Provider, { ProviderJob, ProviderJobService } from "./provider";
+import Provider, { ProviderWork, ProviderWorkJob } from "./provider";
 
 import {
     makeFakeUserContact,
@@ -6,12 +6,12 @@ import {
 } from "@/domain/@shared/entity/user.spec.fixture";
 
 import {
-    makeFakeProviderJob,
+    makeFakeProviderWork,
     makeFakeProvider,
-    makeFakeProviderJobWithoutService,
-    makeFakeProviderWithoutJob,
+    makeFakeProviderWorkWithoutJob,
+    makeFakeProviderWithoutWork,
     makeFakeUnderageProvider,
-    makeFakeProviderJobService,
+    makeFakeProviderWorkJob,
 } from "./provider.spec.fixture";
 
 describe("Provider Entity", () => {
@@ -51,164 +51,164 @@ describe("Provider Entity", () => {
         expect(provider.contact).toBe(newContact);
     });
 
-    it("should not be able to create if has no job", () => {
-        expect(makeFakeProviderWithoutJob).toThrow(
-            "Provider must have at least one job"
+    it("should not be able to create if has no work", () => {
+        expect(makeFakeProviderWithoutWork).toThrow(
+            "Provider must have at least one work"
         );
     });
 
-    it("should be able to add a new job", () => {
+    it("should be able to add a new work", () => {
         const provider = makeFakeProvider();
 
-        expect(provider.jobs.length).toEqual(1);
+        expect(provider.works.length).toEqual(1);
 
-        const newJob = makeFakeProviderJob();
+        const newWork = makeFakeProviderWork();
 
-        provider.addJob(newJob);
+        provider.addWork(newWork);
 
-        expect(provider.jobs.length).toEqual(2);
-        expect(provider.jobs[1]).toBe(newJob);
+        expect(provider.works.length).toEqual(2);
+        expect(provider.works[1]).toBe(newWork);
     });
 
-    it("should not be able to add same job", () => {
+    it("should not be able to add same work", () => {
         const provider = makeFakeProvider();
-        const existingJob = provider.jobs[0];
+        const existingWork = provider.works[0];
 
         expect(() => {
-            provider.addJob(existingJob);
+            provider.addWork(existingWork);
+        }).toThrow("It's not possible to add the same work twice");
+
+        const newWork = new ProviderWork(
+            existingWork.id,
+            existingWork.name,
+            existingWork.jobs,
+            existingWork.minCost
+        );
+
+        expect(() => {
+            provider.addWork(newWork);
+        }).toThrow("It's not possible to add the same work twice");
+    });
+
+    it("should be able to remove a work", () => {
+        const provider = makeFakeProvider();
+
+        expect(provider.works.length).toEqual(1);
+
+        const newWork = makeFakeProviderWork();
+
+        provider.addWork(newWork);
+
+        expect(provider.works.length).toEqual(2);
+        expect(provider.works[1]).toBe(newWork);
+
+        provider.removeWork(provider.works[0]);
+
+        expect(provider.works.length).toEqual(1);
+        expect(provider.works[0]).toBe(newWork);
+
+        provider.removeWork(newWork);
+
+        expect(provider.works.length).toEqual(0);
+    });
+
+    it("should not be able to remove a non-practicable work", () => {
+        const provider = makeFakeProvider();
+        const newWork = makeFakeProviderWork();
+
+        expect(() => {
+            provider.removeWork(newWork);
+        }).toThrow("It's not possible to remove a non-practicable work");
+    });
+
+    it("should not be able to create a provider work without job", () => {
+        expect(makeFakeProviderWorkWithoutJob).toThrow(
+            "Provider work must have at least one job"
+        );
+    });
+
+    it("should be able to add new job to provider work", () => {
+        const provider = makeFakeProvider();
+        const existingWork = provider.works[0];
+        const existingWorkJob = existingWork.jobs[0];
+
+        expect(existingWork.jobs.length).toEqual(1);
+        expect(existingWork.jobs[0]).toBe(existingWorkJob);
+
+        const newWorkJob = makeFakeProviderWorkJob();
+
+        existingWork.addJob(newWorkJob);
+
+        expect(existingWork.jobs.length).toEqual(2);
+        expect(existingWork.jobs[1]).toBe(newWorkJob);
+    });
+
+    it("should not be able to add same job to provider work", () => {
+        const provider = makeFakeProvider();
+        const existingWork = provider.works[0];
+        const existingWorkJob = existingWork.jobs[0];
+
+        expect(() => {
+            existingWork.addJob(existingWorkJob);
         }).toThrow("It's not possible to add the same job twice");
 
-        const newJob = new ProviderJob(
-            existingJob.id,
-            existingJob.name,
-            existingJob.services,
-            existingJob.minCost
+        const newJobService = new ProviderWorkJob(
+            existingWorkJob.id,
+            existingWorkJob.name,
+            existingWorkJob.cost
         );
 
         expect(() => {
-            provider.addJob(newJob);
+            existingWork.addJob(newJobService);
         }).toThrow("It's not possible to add the same job twice");
     });
 
     it("should be able to remove a job", () => {
         const provider = makeFakeProvider();
+        const existingWork = provider.works[0];
 
-        expect(provider.jobs.length).toEqual(1);
+        expect(existingWork.jobs.length).toEqual(1);
 
-        const newJob = makeFakeProviderJob();
+        const newWorkJob = makeFakeProviderWorkJob();
 
-        provider.addJob(newJob);
+        existingWork.addJob(newWorkJob);
 
-        expect(provider.jobs.length).toEqual(2);
-        expect(provider.jobs[1]).toBe(newJob);
+        expect(existingWork.jobs.length).toEqual(2);
+        expect(existingWork.jobs[1]).toBe(newWorkJob);
 
-        provider.removeJob(provider.jobs[0]);
+        existingWork.removeJob(existingWork.jobs[0]);
 
-        expect(provider.jobs.length).toEqual(1);
-        expect(provider.jobs[0]).toBe(newJob);
+        expect(existingWork.jobs.length).toEqual(1);
+        expect(existingWork.jobs[0]).toBe(newWorkJob);
 
-        provider.removeJob(newJob);
+        existingWork.removeJob(newWorkJob);
 
-        expect(provider.jobs.length).toEqual(0);
+        expect(existingWork.jobs.length).toEqual(0);
     });
 
     it("should not be able to remove a non-practicable job", () => {
         const provider = makeFakeProvider();
-        const newJob = makeFakeProviderJob();
+        const existingWork = provider.works[0];
+        const newWorkJob = makeFakeProviderWorkJob();
 
         expect(() => {
-            provider.removeJob(newJob);
+            existingWork.removeJob(newWorkJob);
         }).toThrow("It's not possible to remove a non-practicable job");
     });
 
-    it("should not be able to create a provider job without service", () => {
-        expect(makeFakeProviderJobWithoutService).toThrow(
-            "Provider job must have at least one service"
-        );
-    });
-
-    it("should be able to add new service to provider job", () => {
+    it("should calculate the total amount of the provider work", () => {
         const provider = makeFakeProvider();
-        const existingJob = provider.jobs[0];
-        const existingJobService = existingJob.services[0];
-
-        expect(existingJob.services.length).toEqual(1);
-        expect(existingJob.services[0]).toBe(existingJobService);
-
-        const newJobService = makeFakeProviderJobService();
-
-        existingJob.addService(newJobService);
-
-        expect(existingJob.services.length).toEqual(2);
-        expect(existingJob.services[1]).toBe(newJobService);
-    });
-
-    it("should not be able to add same service to provider job", () => {
-        const provider = makeFakeProvider();
-        const existingJob = provider.jobs[0];
-        const existingJobService = existingJob.services[0];
-
-        expect(() => {
-            existingJob.addService(existingJobService);
-        }).toThrow("It's not possible to add the same service twice");
-
-        const newJobService = new ProviderJobService(
-            existingJobService.id,
-            existingJobService.name,
-            existingJobService.cost
-        );
-
-        expect(() => {
-            existingJob.addService(newJobService);
-        }).toThrow("It's not possible to add the same service twice");
-    });
-
-    it("should be able to remove a service", () => {
-        const provider = makeFakeProvider();
-        const existingJob = provider.jobs[0];
-
-        expect(existingJob.services.length).toEqual(1);
-
-        const newJobService = makeFakeProviderJobService();
-
-        existingJob.addService(newJobService);
-
-        expect(existingJob.services.length).toEqual(2);
-        expect(existingJob.services[1]).toBe(newJobService);
-
-        existingJob.removeService(existingJob.services[0]);
-
-        expect(existingJob.services.length).toEqual(1);
-        expect(existingJob.services[0]).toBe(newJobService);
-
-        existingJob.removeService(newJobService);
-
-        expect(existingJob.services.length).toEqual(0);
-    });
-
-    it("should not be able to remove a non-practicable service", () => {
-        const provider = makeFakeProvider();
-        const existingJob = provider.jobs[0];
-        const newJobService = makeFakeProviderJobService();
-
-        expect(() => {
-            existingJob.removeService(newJobService);
-        }).toThrow("It's not possible to remove a non-practicable service");
-    });
-
-    it("should calculate the total amount of the provider job", () => {
-        const provider = makeFakeProvider();
-        const providerJob = provider.jobs[0];
-        const totalProviderJobServices = providerJob.services.reduce(
-            (total, service) => total + service.cost,
+        const providerWork = provider.works[0];
+        const providerWorkJobsTotal = providerWork.jobs.reduce(
+            (total, job) => total + job.cost,
             0
         );
         const totalExpected = Math.max(
-            totalProviderJobServices,
-            providerJob.minCost
+            providerWorkJobsTotal,
+            providerWork.minCost
         );
 
-        const totalCalculated = providerJob.totalCost;
+        const totalCalculated = providerWork.totalCost;
 
         expect(totalExpected).toEqual(totalCalculated);
     });

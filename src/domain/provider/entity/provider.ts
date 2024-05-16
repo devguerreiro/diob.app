@@ -1,9 +1,9 @@
 import User from "@/domain/@shared/entity/user";
 
 import {
-    JobInterface,
-    JobServiceInterface,
-} from "@/domain/@shared/entity/job.interface";
+    WorkInterface,
+    WorkJobInterface,
+} from "@/domain/@shared/interface/work";
 
 import {
     UserContact,
@@ -19,50 +19,50 @@ export default class Provider extends User {
         email: UserEmail,
         contact: UserContact,
         dob: Date,
-        private _jobs: Array<ProviderJob>
+        private _works: Array<ProviderWork>
     ) {
         super(id, name, document, email, contact, dob);
 
         this.validate();
     }
 
-    get jobs(): Array<ProviderJob> {
-        return this._jobs;
+    get works(): Array<ProviderWork> {
+        return this._works;
     }
 
     validate(): void {
         super.validate();
 
-        if (this._jobs.length === 0)
-            throw new Error("Provider must have at least one job");
+        if (this._works.length === 0)
+            throw new Error("Provider must have at least one work");
     }
 
-    addJob(job: ProviderJob): void {
-        const jobIndex = this._jobs.findIndex((j) => j.id === job.id);
+    addWork(work: ProviderWork): void {
+        const workIndex = this._works.findIndex((j) => j.id === work.id);
 
-        if (jobIndex !== -1)
-            throw new Error("It's not possible to add the same job twice");
+        if (workIndex !== -1)
+            throw new Error("It's not possible to add the same work twice");
 
-        this._jobs.push(job);
+        this._works.push(work);
     }
 
-    removeJob(job: ProviderJob): void {
-        const jobIndex = this._jobs.findIndex((j) => j.id === job.id);
+    removeWork(work: ProviderWork): void {
+        const workIndex = this._works.findIndex((j) => j.id === work.id);
 
-        if (jobIndex === -1)
+        if (workIndex === -1)
             throw new Error(
-                "It's not possible to remove a non-practicable job"
+                "It's not possible to remove a non-practicable work"
             );
 
-        this._jobs.splice(jobIndex, 1);
+        this._works.splice(workIndex, 1);
     }
 }
 
-export class ProviderJob implements JobInterface {
+export class ProviderWork implements WorkInterface {
     constructor(
         private _id: string,
         private _name: string,
-        private _services: Array<ProviderJobService>,
+        private _jobs: Array<ProviderWorkJob>,
         private _minCost: number
     ) {
         this.validate();
@@ -76,8 +76,8 @@ export class ProviderJob implements JobInterface {
         return this._name;
     }
 
-    get services(): Array<ProviderJobService> {
-        return this._services;
+    get jobs(): Array<ProviderWorkJob> {
+        return this._jobs;
     }
 
     get minCost(): number {
@@ -85,44 +85,40 @@ export class ProviderJob implements JobInterface {
     }
 
     get totalCost(): number {
-        const totalServices = this._services.reduce(
-            (total, service) => total + service.cost,
+        const jobsTotal = this._jobs.reduce(
+            (total, job) => total + job.cost,
             0
         );
-        return Math.max(totalServices, this._minCost);
+        return Math.max(jobsTotal, this._minCost);
     }
 
     validate(): void {
-        if (this._services.length === 0)
-            throw new Error("Provider job must have at least one service");
+        if (this._jobs.length === 0)
+            throw new Error("Provider work must have at least one job");
     }
 
-    addService(service: ProviderJobService): void {
-        const serviceIndex = this._services.findIndex(
-            (s) => s.id === service.id
-        );
+    addJob(job: ProviderWorkJob): void {
+        const jobIndex = this._jobs.findIndex((s) => s.id === job.id);
 
-        if (serviceIndex !== -1)
-            throw new Error("It's not possible to add the same service twice");
+        if (jobIndex !== -1)
+            throw new Error("It's not possible to add the same job twice");
 
-        this._services.push(service);
+        this._jobs.push(job);
     }
 
-    removeService(service: ProviderJobService): void {
-        const serviceIndex = this._services.findIndex(
-            (j) => j.id === service.id
-        );
+    removeJob(job: ProviderWorkJob): void {
+        const jobIndex = this._jobs.findIndex((j) => j.id === job.id);
 
-        if (serviceIndex === -1)
+        if (jobIndex === -1)
             throw new Error(
-                "It's not possible to remove a non-practicable service"
+                "It's not possible to remove a non-practicable job"
             );
 
-        this._services.splice(serviceIndex, 1);
+        this._jobs.splice(jobIndex, 1);
     }
 }
 
-export class ProviderJobService implements JobServiceInterface {
+export class ProviderWorkJob implements WorkJobInterface {
     constructor(
         private _id: string,
         private _name: string,
