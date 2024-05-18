@@ -67,22 +67,34 @@ export default abstract class Request<T> {
         });
     }
 
-    cancel(user: User): void {
+    cancel(user: User, additionalValidation: () => void): void {
+        const alreadyBegan = this._logs.some(
+            (log) =>
+                log.status === RequestStatus.BEGAN && log.changedBy === user
+        );
+
+        if (user === this._provider && !alreadyBegan)
+            throw new Error(
+                "It's not possible to cancel the request before beginning"
+            );
+
         const alreadyFinished = this._logs.some(
             (log) => log.status === RequestStatus.FINISHED
         );
 
         if (alreadyFinished)
             throw new Error(
-                "It's not possible to cancel the request if it already finished"
+                "It's not possible to cancel the request after finished"
             );
+
+        additionalValidation();
 
         this.saveLog(RequestStatus.CANCELLED, user);
     }
 
     begin(user: User, additionalValidation: () => void): void {
         if (user !== this._provider)
-            throw new Error("Only the provider can begin the request");
+            throw new Error("Only the provider should begin the request");
 
         additionalValidation();
 
@@ -96,36 +108,53 @@ export default abstract class Request<T> {
 
         if (!alreadyBegan)
             throw new Error(
-                "It's not possible to finish the request before begin it"
+                "It's not possible to finish the request before beginning"
+            );
+
+        const alreadyCancelled = this._logs.some(
+            (log) => log.status === RequestStatus.CANCELLED
+        );
+
+        if (alreadyCancelled)
+            throw new Error(
+                "It's not possible to finish the request after cancelled"
+            );
+
+        const alreadyFinished = this._logs.some(
+            (log) =>
+                log.status === RequestStatus.FINISHED && log.changedBy === user
+        );
+
+        if (alreadyFinished)
+            throw new Error(
+                "It's not possible to finish the request more than once"
             );
 
         this.saveLog(RequestStatus.FINISHED, user);
     }
 
     rate(evaluator: User): void {
-        if (evaluator === this._client) {
-            const clientAlreadyFinish = this._logs.some(
-                (log) =>
-                    log.status === RequestStatus.FINISHED &&
-                    log.changedBy === evaluator
+        const evaluatorAlreadyFinished = this._logs.some(
+            (log) =>
+                log.status === RequestStatus.FINISHED &&
+                log.changedBy === evaluator
+        );
+
+        if (!evaluatorAlreadyFinished)
+            throw new Error(
+                "It's not possible to rate the request before finishing"
             );
 
-            if (!clientAlreadyFinish)
-                throw new Error(
-                    "It's not possible to rate the request provider before finishing it"
-                );
-        } else if (evaluator === this._provider) {
-            const providerAlreadyFinish = this._logs.some(
-                (log) =>
-                    log.status === RequestStatus.FINISHED &&
-                    log.changedBy === evaluator
-            );
+        const evaluatorAlreadyRated = this._logs.some(
+            (log) =>
+                log.status === RequestStatus.RATED &&
+                log.changedBy === evaluator
+        );
 
-            if (!providerAlreadyFinish)
-                throw new Error(
-                    "It's not possible to rate the request client before finishing it"
-                );
-        }
+        if (evaluatorAlreadyRated)
+            throw new Error(
+                "It's not possible to rate the request more than once"
+            );
 
         this.saveLog(RequestStatus.RATED, evaluator);
     }

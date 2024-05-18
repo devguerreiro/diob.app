@@ -30,6 +30,8 @@ describe("ScheduledRequest Entity", () => {
         );
     });
 
+    // SCHEDULING
+
     it("should be able to the client schedule the request", () => {
         const newScheduledRequest = makeFakeScheduledRequest();
 
@@ -50,26 +52,33 @@ describe("ScheduledRequest Entity", () => {
 
         expect(() => {
             newScheduledRequest.schedule(newScheduledRequest.provider);
-        }).toThrow("Only the client can schedule the request");
+        }).toThrow("Only the client should schedule the request");
     });
+
+    it("should not be able to schedule the request if not on CREATED stage", () => {
+        const newScheduledRequest = makeFakeScheduledRequest();
+
+        newScheduledRequest.schedule(newScheduledRequest.client);
+
+        expect(() => {
+            newScheduledRequest.schedule(newScheduledRequest.client);
+        }).toThrow(
+            "It's not possible to schedule the request if not on CREATED stage"
+        );
+    });
+
+    // RESCHEDULING
 
     it("should be able to the client reschedule the request", () => {
         const newScheduledRequest = makeFakeScheduledRequest();
 
         newScheduledRequest.schedule(newScheduledRequest.client);
 
-        expect(newScheduledRequest.logs.length).toEqual(2);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            ScheduledRequestStatus.SCHEDULED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
+        newScheduledRequest.reschedule(newScheduledRequest.client);
 
         newScheduledRequest.reschedule(newScheduledRequest.client);
 
-        expect(newScheduledRequest.logs.length).toEqual(3);
+        expect(newScheduledRequest.logs.length).toEqual(4);
         expect(newScheduledRequest.currentLog.status).toBe(
             ScheduledRequestStatus.RESCHEDULED
         );
@@ -84,43 +93,27 @@ describe("ScheduledRequest Entity", () => {
 
         newScheduledRequest.schedule(newScheduledRequest.client);
 
-        expect(newScheduledRequest.logs.length).toEqual(2);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            ScheduledRequestStatus.SCHEDULED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
         expect(() => {
             newScheduledRequest.reschedule(newScheduledRequest.provider);
-        }).toThrow("Only the client can reschedule the request");
+        }).toThrow("Only the client should reschedule the request");
     });
 
-    it("should not be able to reschedule the request if current status is not SCHEDULED", () => {
+    it("should not be able to reschedule the request if not on SCHEDULED or RESCHEDULED stage", () => {
         const newScheduledRequest = makeFakeScheduledRequest();
 
         expect(() => {
             newScheduledRequest.reschedule(newScheduledRequest.client);
         }).toThrow(
-            "It's not possible to RESCHEDULE a not yet scheduled request"
+            "It's not possible to reschedule the request if not on SCHEDULED or RESCHEDULED stage"
         );
     });
 
-    it("should be able to the client cancel the request before the provider begin", () => {
+    // CANCELLING
+
+    it("should be able to the client cancel the request before the provider beginning", () => {
         const newScheduledRequest = makeFakeScheduledRequest();
 
         newScheduledRequest.schedule(newScheduledRequest.client);
-
-        expect(newScheduledRequest.logs.length).toEqual(2);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            ScheduledRequestStatus.SCHEDULED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
 
         newScheduledRequest.cancel(newScheduledRequest.client);
 
@@ -134,30 +127,33 @@ describe("ScheduledRequest Entity", () => {
         expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
     });
 
-    it("should be able to the client cancel the request before the provider begin (rescheduled)", () => {
+    it("should be able to the client cancel the request before the provider beginning and after rescheduled", () => {
         const newScheduledRequest = makeFakeScheduledRequest();
 
         newScheduledRequest.schedule(newScheduledRequest.client);
-
-        expect(newScheduledRequest.logs.length).toEqual(2);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            ScheduledRequestStatus.SCHEDULED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
 
         newScheduledRequest.reschedule(newScheduledRequest.client);
 
-        expect(newScheduledRequest.logs.length).toEqual(3);
+        newScheduledRequest.cancel(newScheduledRequest.client);
+
+        expect(newScheduledRequest.logs.length).toEqual(4);
         expect(newScheduledRequest.currentLog.status).toBe(
-            ScheduledRequestStatus.RESCHEDULED
+            RequestStatus.CANCELLED
         );
         expect(newScheduledRequest.currentLog.changedBy).toBe(
             newScheduledRequest.client
         );
         expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
+    });
+
+    it("should be able to the client cancel the request after beginning", () => {
+        const newScheduledRequest = makeFakeScheduledRequest();
+
+        newScheduledRequest.schedule(newScheduledRequest.client);
+
+        makeScheduledRequestReadyToBegin();
+
+        newScheduledRequest.begin(newScheduledRequest.provider);
 
         newScheduledRequest.cancel(newScheduledRequest.client);
 
@@ -171,67 +167,14 @@ describe("ScheduledRequest Entity", () => {
         expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
     });
 
-    it("should be able to the client cancel the request after began", () => {
+    it("should be able to the provider cancel the request after beginning", () => {
         const newScheduledRequest = makeFakeScheduledRequest();
 
         newScheduledRequest.schedule(newScheduledRequest.client);
 
-        expect(newScheduledRequest.logs.length).toEqual(2);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            ScheduledRequestStatus.SCHEDULED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
         makeScheduledRequestReadyToBegin();
 
         newScheduledRequest.begin(newScheduledRequest.provider);
-
-        expect(newScheduledRequest.logs.length).toEqual(3);
-        expect(newScheduledRequest.currentLog.status).toBe(RequestStatus.BEGAN);
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.provider
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
-        newScheduledRequest.cancel(newScheduledRequest.client);
-
-        expect(newScheduledRequest.logs.length).toEqual(4);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            RequestStatus.CANCELLED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-    });
-
-    it("should be able to the provider cancel the request after began", () => {
-        const newScheduledRequest = makeFakeScheduledRequest();
-
-        newScheduledRequest.schedule(newScheduledRequest.client);
-
-        expect(newScheduledRequest.logs.length).toEqual(2);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            ScheduledRequestStatus.SCHEDULED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
-        makeScheduledRequestReadyToBegin();
-
-        newScheduledRequest.begin(newScheduledRequest.provider);
-
-        expect(newScheduledRequest.logs.length).toEqual(3);
-        expect(newScheduledRequest.currentLog.status).toBe(RequestStatus.BEGAN);
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.provider
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
 
         newScheduledRequest.cancel(newScheduledRequest.provider);
 
@@ -245,174 +188,87 @@ describe("ScheduledRequest Entity", () => {
         expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
     });
 
-    it("should be able to the client cancel the request after began (rescheduled)", () => {
+    it("should not be able to the provider cancel the request before beginning", () => {
         const newScheduledRequest = makeFakeScheduledRequest();
 
         newScheduledRequest.schedule(newScheduledRequest.client);
-
-        expect(newScheduledRequest.logs.length).toEqual(2);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            ScheduledRequestStatus.SCHEDULED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
-        newScheduledRequest.reschedule(newScheduledRequest.client);
-
-        expect(newScheduledRequest.logs.length).toEqual(3);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            ScheduledRequestStatus.RESCHEDULED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
-        makeScheduledRequestReadyToBegin();
-
-        newScheduledRequest.begin(newScheduledRequest.provider);
-
-        expect(newScheduledRequest.logs.length).toEqual(4);
-        expect(newScheduledRequest.currentLog.status).toBe(RequestStatus.BEGAN);
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.provider
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
-        newScheduledRequest.cancel(newScheduledRequest.client);
-
-        expect(newScheduledRequest.logs.length).toEqual(5);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            RequestStatus.CANCELLED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-    });
-
-    it("should be able to the provider cancel the request after began (rescheduled)", () => {
-        const newScheduledRequest = makeFakeScheduledRequest();
-
-        newScheduledRequest.schedule(newScheduledRequest.client);
-
-        expect(newScheduledRequest.logs.length).toEqual(2);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            ScheduledRequestStatus.SCHEDULED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
-        newScheduledRequest.reschedule(newScheduledRequest.client);
-
-        expect(newScheduledRequest.logs.length).toEqual(3);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            ScheduledRequestStatus.RESCHEDULED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
-        makeScheduledRequestReadyToBegin();
-
-        newScheduledRequest.begin(newScheduledRequest.provider);
-
-        expect(newScheduledRequest.logs.length).toEqual(4);
-        expect(newScheduledRequest.currentLog.status).toBe(RequestStatus.BEGAN);
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.provider
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
-        newScheduledRequest.cancel(newScheduledRequest.provider);
-
-        expect(newScheduledRequest.logs.length).toEqual(5);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            RequestStatus.CANCELLED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.provider
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-    });
-
-    it("should not be able to the client cancel the request if it already finished", () => {
-        const newScheduledRequest = makeFakeScheduledRequest();
-
-        makeScheduledRequestReadyToBegin();
-
-        newScheduledRequest.begin(newScheduledRequest.provider);
-
-        expect(newScheduledRequest.logs.length).toEqual(2);
-        expect(newScheduledRequest.currentLog.status).toBe(RequestStatus.BEGAN);
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.provider
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
-        newScheduledRequest.finish(newScheduledRequest.provider);
-
-        expect(newScheduledRequest.logs.length).toEqual(3);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            RequestStatus.FINISHED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.provider
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
-        expect(() => {
-            newScheduledRequest.cancel(newScheduledRequest.client);
-        }).toThrow(
-            "It's not possible to cancel the request if it already finished"
-        );
-    });
-
-    it("should not be able to the provider cancel the request if it already finished", () => {
-        const newScheduledRequest = makeFakeScheduledRequest();
-
-        makeScheduledRequestReadyToBegin();
-
-        newScheduledRequest.begin(newScheduledRequest.provider);
-
-        expect(newScheduledRequest.logs.length).toEqual(2);
-        expect(newScheduledRequest.currentLog.status).toBe(RequestStatus.BEGAN);
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.provider
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
-        newScheduledRequest.finish(newScheduledRequest.provider);
-
-        expect(newScheduledRequest.logs.length).toEqual(3);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            RequestStatus.FINISHED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.provider
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
 
         expect(() => {
             newScheduledRequest.cancel(newScheduledRequest.provider);
-        }).toThrow(
-            "It's not possible to cancel the request if it already finished"
-        );
+        }).toThrow("It's not possible to cancel the request before beginning");
     });
 
-    it("should be able to the provider begin the request", () => {
+    it("should not be able to the client cancel the request before scheduling", () => {
         const newScheduledRequest = makeFakeScheduledRequest();
+
+        expect(() => {
+            newScheduledRequest.cancel(newScheduledRequest.client);
+        }).toThrow("It's not possible to cancel the request before scheduling");
+    });
+
+    it("should not be able to the client cancel the request after finished", () => {
+        const newScheduledRequest = makeFakeScheduledRequest();
+
+        newScheduledRequest.schedule(newScheduledRequest.client);
 
         makeScheduledRequestReadyToBegin();
 
         newScheduledRequest.begin(newScheduledRequest.provider);
 
-        expect(newScheduledRequest.logs.length).toEqual(2);
+        newScheduledRequest.finish(newScheduledRequest.provider);
+
+        expect(() => {
+            newScheduledRequest.cancel(newScheduledRequest.client);
+        }).toThrow("It's not possible to cancel the request after finished");
+    });
+
+    it("should not be able to the provider cancel the request after finished", () => {
+        const newScheduledRequest = makeFakeScheduledRequest();
+
+        newScheduledRequest.schedule(newScheduledRequest.client);
+
+        makeScheduledRequestReadyToBegin();
+
+        newScheduledRequest.begin(newScheduledRequest.provider);
+
+        newScheduledRequest.finish(newScheduledRequest.provider);
+
+        expect(() => {
+            newScheduledRequest.cancel(newScheduledRequest.provider);
+        }).toThrow("It's not possible to cancel the request after finished");
+    });
+
+    // BEGINNING
+
+    it("should be able to the provider begin the request if on SCHEDULED stage", () => {
+        const newScheduledRequest = makeFakeScheduledRequest();
+
+        newScheduledRequest.schedule(newScheduledRequest.client);
+
+        makeScheduledRequestReadyToBegin();
+
+        newScheduledRequest.begin(newScheduledRequest.provider);
+
+        expect(newScheduledRequest.logs.length).toEqual(3);
+        expect(newScheduledRequest.currentLog.status).toBe(RequestStatus.BEGAN);
+        expect(newScheduledRequest.currentLog.changedBy).toBe(
+            newScheduledRequest.provider
+        );
+        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
+    });
+
+    it("should be able to the provider begin the request if on RESCHEDULED stage", () => {
+        const newScheduledRequest = makeFakeScheduledRequest();
+
+        newScheduledRequest.schedule(newScheduledRequest.client);
+
+        newScheduledRequest.reschedule(newScheduledRequest.client);
+
+        makeScheduledRequestReadyToBegin();
+
+        newScheduledRequest.begin(newScheduledRequest.provider);
+
+        expect(newScheduledRequest.logs.length).toEqual(4);
         expect(newScheduledRequest.currentLog.status).toBe(RequestStatus.BEGAN);
         expect(newScheduledRequest.currentLog.changedBy).toBe(
             newScheduledRequest.provider
@@ -423,13 +279,30 @@ describe("ScheduledRequest Entity", () => {
     it("should not be able to begin the request if are not the provider", () => {
         const newScheduledRequest = makeFakeScheduledRequest();
 
+        newScheduledRequest.schedule(newScheduledRequest.client);
+
         expect(() => {
             newScheduledRequest.begin(newScheduledRequest.client);
-        }).toThrow("Only the provider can begin the request");
+        }).toThrow("Only the provider should begin the request");
+    });
+
+    it("should not be able to the provider begin the request if not on SCHEDULED or RESCHEDULED stage", () => {
+        const newScheduledRequest = makeFakeScheduledRequest();
+
+        makeScheduledRequestReadyToBegin();
+
+        expect(() => {
+            newScheduledRequest.begin(newScheduledRequest.provider);
+        }).toThrow(
+            "It's not possible to begin the request if not on SCHEDULED or RESCHEDULED stage"
+        );
     });
 
     it("should not be able to the provider begin the request before the scheduled date and time comes", () => {
         const newScheduledRequest = makeFakeScheduledRequest();
+
+        newScheduledRequest.schedule(newScheduledRequest.client);
+
         const now = new Date();
         const now1SecondAgo = dayjs(now).subtract(1, "second").toDate();
 
@@ -445,78 +318,16 @@ describe("ScheduledRequest Entity", () => {
         );
     });
 
-    it("should be able to the client finish the request", () => {
-        const newScheduledRequest = makeFakeScheduledRequest();
-
-        newScheduledRequest.schedule(newScheduledRequest.client);
-
-        expect(newScheduledRequest.logs.length).toEqual(2);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            ScheduledRequestStatus.SCHEDULED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
-        makeScheduledRequestReadyToBegin();
-
-        newScheduledRequest.begin(newScheduledRequest.provider);
-
-        expect(newScheduledRequest.logs.length).toEqual(3);
-        expect(newScheduledRequest.currentLog.status).toBe(RequestStatus.BEGAN);
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.provider
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
-        newScheduledRequest.finish(newScheduledRequest.provider);
-
-        expect(newScheduledRequest.logs.length).toEqual(4);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            RequestStatus.FINISHED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.provider
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
-        newScheduledRequest.finish(newScheduledRequest.client);
-
-        expect(newScheduledRequest.logs.length).toEqual(5);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            RequestStatus.FINISHED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-    });
+    // FINISHING
 
     it("should be able to the provider finish the request", () => {
         const newScheduledRequest = makeFakeScheduledRequest();
 
         newScheduledRequest.schedule(newScheduledRequest.client);
 
-        expect(newScheduledRequest.logs.length).toEqual(2);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            ScheduledRequestStatus.SCHEDULED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
         makeScheduledRequestReadyToBegin();
 
         newScheduledRequest.begin(newScheduledRequest.provider);
-
-        expect(newScheduledRequest.logs.length).toEqual(3);
-        expect(newScheduledRequest.currentLog.status).toBe(RequestStatus.BEGAN);
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.provider
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
 
         newScheduledRequest.finish(newScheduledRequest.provider);
 
@@ -530,94 +341,119 @@ describe("ScheduledRequest Entity", () => {
         expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
     });
 
-    it("should not be able to the client finish the request before begin it", () => {
+    it("should be able to the client finish the request", () => {
         const newScheduledRequest = makeFakeScheduledRequest();
 
         newScheduledRequest.schedule(newScheduledRequest.client);
 
-        expect(newScheduledRequest.logs.length).toEqual(2);
+        makeScheduledRequestReadyToBegin();
+
+        newScheduledRequest.begin(newScheduledRequest.provider);
+
+        newScheduledRequest.finish(newScheduledRequest.client);
+
+        expect(newScheduledRequest.logs.length).toEqual(4);
         expect(newScheduledRequest.currentLog.status).toBe(
-            ScheduledRequestStatus.SCHEDULED
+            RequestStatus.FINISHED
         );
         expect(newScheduledRequest.currentLog.changedBy).toBe(
             newScheduledRequest.client
         );
         expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
-        expect(() => {
-            newScheduledRequest.finish(newScheduledRequest.client);
-        }).toThrow("It's not possible to finish the request before begin it");
     });
 
-    it("should not be able to the provider finish the request before begin it", () => {
+    it("should not be able to the client finish the request before beginning", () => {
         const newScheduledRequest = makeFakeScheduledRequest();
 
         newScheduledRequest.schedule(newScheduledRequest.client);
 
-        expect(newScheduledRequest.logs.length).toEqual(2);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            ScheduledRequestStatus.SCHEDULED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
+        expect(() => {
+            newScheduledRequest.finish(newScheduledRequest.client);
+        }).toThrow("It's not possible to finish the request before beginning");
+    });
+
+    it("should not be able to the client finish the request after cancelled", () => {
+        const newScheduledRequest = makeFakeScheduledRequest();
+
+        newScheduledRequest.schedule(newScheduledRequest.client);
+
+        newScheduledRequest.begin(newScheduledRequest.provider);
+
+        newScheduledRequest.cancel(newScheduledRequest.client);
 
         expect(() => {
             newScheduledRequest.finish(newScheduledRequest.client);
-        }).toThrow("It's not possible to finish the request before begin it");
+        }).toThrow("It's not possible to finish the request after cancelled");
     });
+
+    it("should not be able to the client finish the request more than once", () => {
+        const newScheduledRequest = makeFakeScheduledRequest();
+
+        newScheduledRequest.schedule(newScheduledRequest.client);
+
+        newScheduledRequest.begin(newScheduledRequest.provider);
+
+        newScheduledRequest.finish(newScheduledRequest.client);
+
+        expect(() => {
+            newScheduledRequest.finish(newScheduledRequest.client);
+        }).toThrow("It's not possible to finish the request more than once");
+    });
+
+    it("should not be able to the provider finish the request before beginning", () => {
+        const newScheduledRequest = makeFakeScheduledRequest();
+
+        newScheduledRequest.schedule(newScheduledRequest.client);
+
+        expect(() => {
+            newScheduledRequest.finish(newScheduledRequest.provider);
+        }).toThrow("It's not possible to finish the request before beginning");
+    });
+
+    it("should not be able to the provider finish the request after cancelled", () => {
+        const newScheduledRequest = makeFakeScheduledRequest();
+
+        newScheduledRequest.schedule(newScheduledRequest.client);
+
+        newScheduledRequest.begin(newScheduledRequest.provider);
+
+        newScheduledRequest.cancel(newScheduledRequest.client);
+
+        expect(() => {
+            newScheduledRequest.finish(newScheduledRequest.provider);
+        }).toThrow("It's not possible to finish the request after cancelled");
+    });
+
+    it("should not be able to the provider finish the request more than once", () => {
+        const newScheduledRequest = makeFakeScheduledRequest();
+
+        newScheduledRequest.schedule(newScheduledRequest.client);
+
+        newScheduledRequest.begin(newScheduledRequest.provider);
+
+        newScheduledRequest.finish(newScheduledRequest.provider);
+
+        expect(() => {
+            newScheduledRequest.finish(newScheduledRequest.provider);
+        }).toThrow("It's not possible to finish the request more than once");
+    });
+
+    // RATING
 
     it("should be able to the client rate the request provider", () => {
         const newScheduledRequest = makeFakeScheduledRequest();
 
         newScheduledRequest.schedule(newScheduledRequest.client);
 
-        expect(newScheduledRequest.logs.length).toEqual(2);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            ScheduledRequestStatus.SCHEDULED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
         makeScheduledRequestReadyToBegin();
 
         newScheduledRequest.begin(newScheduledRequest.provider);
 
-        expect(newScheduledRequest.logs.length).toEqual(3);
-        expect(newScheduledRequest.currentLog.status).toBe(RequestStatus.BEGAN);
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.provider
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
-        newScheduledRequest.finish(newScheduledRequest.provider);
-
-        expect(newScheduledRequest.logs.length).toEqual(4);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            RequestStatus.FINISHED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.provider
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
         newScheduledRequest.finish(newScheduledRequest.client);
-
-        expect(newScheduledRequest.logs.length).toEqual(5);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            RequestStatus.FINISHED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
 
         newScheduledRequest.rate(newScheduledRequest.client);
 
-        expect(newScheduledRequest.logs.length).toEqual(6);
+        expect(newScheduledRequest.logs.length).toEqual(5);
         expect(newScheduledRequest.currentLog.status).toBe(RequestStatus.RATED);
         expect(newScheduledRequest.currentLog.changedBy).toBe(
             newScheduledRequest.client
@@ -630,36 +466,11 @@ describe("ScheduledRequest Entity", () => {
 
         newScheduledRequest.schedule(newScheduledRequest.client);
 
-        expect(newScheduledRequest.logs.length).toEqual(2);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            ScheduledRequestStatus.SCHEDULED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
         makeScheduledRequestReadyToBegin();
 
         newScheduledRequest.begin(newScheduledRequest.provider);
 
-        expect(newScheduledRequest.logs.length).toEqual(3);
-        expect(newScheduledRequest.currentLog.status).toBe(RequestStatus.BEGAN);
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.provider
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
         newScheduledRequest.finish(newScheduledRequest.provider);
-
-        expect(newScheduledRequest.logs.length).toEqual(4);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            RequestStatus.FINISHED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.provider
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
 
         newScheduledRequest.rate(newScheduledRequest.provider);
 
@@ -671,67 +482,67 @@ describe("ScheduledRequest Entity", () => {
         expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
     });
 
-    it("should not be able to the client rate the request provider before finishing it", () => {
+    it("should not be able to the client rate the request provider before finishing", () => {
         const newScheduledRequest = makeFakeScheduledRequest();
 
         newScheduledRequest.schedule(newScheduledRequest.client);
 
-        expect(newScheduledRequest.logs.length).toEqual(2);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            ScheduledRequestStatus.SCHEDULED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
-
         makeScheduledRequestReadyToBegin();
 
         newScheduledRequest.begin(newScheduledRequest.provider);
-
-        expect(newScheduledRequest.logs.length).toEqual(3);
-        expect(newScheduledRequest.currentLog.status).toBe(RequestStatus.BEGAN);
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.provider
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
 
         expect(() => {
             newScheduledRequest.rate(newScheduledRequest.client);
-        }).toThrow(
-            "It's not possible to rate the request provider before finishing it"
-        );
+        }).toThrow("It's not possible to rate the request before finishing");
     });
 
-    it("should not be able to the provider rate the request client before finishing it", () => {
+    it("should not be able to the client rate more than once", () => {
         const newScheduledRequest = makeFakeScheduledRequest();
 
         newScheduledRequest.schedule(newScheduledRequest.client);
-
-        expect(newScheduledRequest.logs.length).toEqual(2);
-        expect(newScheduledRequest.currentLog.status).toBe(
-            ScheduledRequestStatus.SCHEDULED
-        );
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.client
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
 
         makeScheduledRequestReadyToBegin();
 
         newScheduledRequest.begin(newScheduledRequest.provider);
 
-        expect(newScheduledRequest.logs.length).toEqual(3);
-        expect(newScheduledRequest.currentLog.status).toBe(RequestStatus.BEGAN);
-        expect(newScheduledRequest.currentLog.changedBy).toBe(
-            newScheduledRequest.provider
-        );
-        expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
+        newScheduledRequest.finish(newScheduledRequest.client);
+
+        newScheduledRequest.rate(newScheduledRequest.client);
+
+        expect(() => {
+            newScheduledRequest.rate(newScheduledRequest.client);
+        }).toThrow("It's not possible to rate the request more than once");
+    });
+
+    it("should not be able to the provider rate the request client before finishing", () => {
+        const newScheduledRequest = makeFakeScheduledRequest();
+
+        newScheduledRequest.schedule(newScheduledRequest.client);
+
+        makeScheduledRequestReadyToBegin();
+
+        newScheduledRequest.begin(newScheduledRequest.provider);
 
         expect(() => {
             newScheduledRequest.rate(newScheduledRequest.provider);
-        }).toThrow(
-            "It's not possible to rate the request client before finishing it"
-        );
+        }).toThrow("It's not possible to rate the request before finishing");
+    });
+
+    it("should not be able to the provider rate more than once", () => {
+        const newScheduledRequest = makeFakeScheduledRequest();
+
+        newScheduledRequest.schedule(newScheduledRequest.client);
+
+        makeScheduledRequestReadyToBegin();
+
+        newScheduledRequest.begin(newScheduledRequest.provider);
+
+        newScheduledRequest.finish(newScheduledRequest.provider);
+
+        newScheduledRequest.rate(newScheduledRequest.provider);
+
+        expect(() => {
+            newScheduledRequest.rate(newScheduledRequest.provider);
+        }).toThrow("It's not possible to rate the request more than once");
     });
 });
