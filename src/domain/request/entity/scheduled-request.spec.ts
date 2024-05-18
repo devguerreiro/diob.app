@@ -222,6 +222,18 @@ describe("ScheduledRequest Entity", () => {
         }).toThrow("It's not possible to cancel the request after finished");
     });
 
+    it("should not be able to the client cancel the request more than once", () => {
+        const newScheduledRequest = makeFakeScheduledRequest();
+
+        newScheduledRequest.schedule(newScheduledRequest.client);
+
+        newScheduledRequest.cancel(newScheduledRequest.client);
+
+        expect(() => {
+            newScheduledRequest.cancel(newScheduledRequest.client);
+        }).toThrow("It's not possible to cancel the request more than once");
+    });
+
     it("should not be able to the provider cancel the request after finished", () => {
         const newScheduledRequest = makeFakeScheduledRequest();
 
@@ -236,6 +248,21 @@ describe("ScheduledRequest Entity", () => {
         expect(() => {
             newScheduledRequest.cancel(newScheduledRequest.provider);
         }).toThrow("It's not possible to cancel the request after finished");
+    });
+
+    
+    it("should not be able to the provider cancel the request more than once", () => {
+        const newScheduledRequest = makeFakeScheduledRequest();
+
+        newScheduledRequest.schedule(newScheduledRequest.client);
+
+        newScheduledRequest.begin(newScheduledRequest.provider);
+
+        newScheduledRequest.cancel(newScheduledRequest.provider);
+
+        expect(() => {
+            newScheduledRequest.cancel(newScheduledRequest.provider);
+        }).toThrow("It's not possible to cancel the request more than once");
     });
 
     // BEGINNING

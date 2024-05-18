@@ -76,6 +76,10 @@ export default abstract class Request<T> {
     }
 
     @statusExists<T>(
+        RequestStatus.CANCELLED,
+        "It's not possible to cancel the request more than once"
+    )
+    @statusExists<T>(
         RequestStatus.FINISHED,
         "It's not possible to cancel the request after finished"
     )
