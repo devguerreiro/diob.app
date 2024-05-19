@@ -66,7 +66,7 @@ export default class ScheduledRequest extends Request<ScheduledRequestStatus> {
         ScheduledRequestStatus.SCHEDULED,
         "It's not possible to cancel the request before scheduling"
     )
-    cancel(user: User): void {
-        super.cancel(user);
+    cancel(user: User, reason: string): void {
+        super.cancel(user, reason);
     }
 }

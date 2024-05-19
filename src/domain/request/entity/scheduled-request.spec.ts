@@ -115,7 +115,7 @@ describe("ScheduledRequest Entity", () => {
 
         newScheduledRequest.schedule(newScheduledRequest.client);
 
-        newScheduledRequest.cancel(newScheduledRequest.client);
+        newScheduledRequest.cancel(newScheduledRequest.client, "foo");
 
         expect(newScheduledRequest.logs.length).toEqual(3);
         expect(newScheduledRequest.currentLog.status).toBe(
@@ -125,6 +125,7 @@ describe("ScheduledRequest Entity", () => {
             newScheduledRequest.client
         );
         expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
+        expect(newScheduledRequest.currentLog.reason).toEqual("foo");
     });
 
     it("should be able to the client cancel the request before the provider beginning and after rescheduled", () => {
@@ -134,7 +135,7 @@ describe("ScheduledRequest Entity", () => {
 
         newScheduledRequest.reschedule(newScheduledRequest.client);
 
-        newScheduledRequest.cancel(newScheduledRequest.client);
+        newScheduledRequest.cancel(newScheduledRequest.client, "foo");
 
         expect(newScheduledRequest.logs.length).toEqual(4);
         expect(newScheduledRequest.currentLog.status).toBe(
@@ -144,6 +145,7 @@ describe("ScheduledRequest Entity", () => {
             newScheduledRequest.client
         );
         expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
+        expect(newScheduledRequest.currentLog.reason).toEqual("foo");
     });
 
     it("should be able to the client cancel the request after beginning", () => {
@@ -155,7 +157,7 @@ describe("ScheduledRequest Entity", () => {
 
         newScheduledRequest.begin(newScheduledRequest.provider);
 
-        newScheduledRequest.cancel(newScheduledRequest.client);
+        newScheduledRequest.cancel(newScheduledRequest.client, "foo");
 
         expect(newScheduledRequest.logs.length).toEqual(4);
         expect(newScheduledRequest.currentLog.status).toBe(
@@ -165,6 +167,7 @@ describe("ScheduledRequest Entity", () => {
             newScheduledRequest.client
         );
         expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
+        expect(newScheduledRequest.currentLog.reason).toEqual("foo");
     });
 
     it("should be able to the provider cancel the request after beginning", () => {
@@ -176,7 +179,7 @@ describe("ScheduledRequest Entity", () => {
 
         newScheduledRequest.begin(newScheduledRequest.provider);
 
-        newScheduledRequest.cancel(newScheduledRequest.provider);
+        newScheduledRequest.cancel(newScheduledRequest.provider, "foo");
 
         expect(newScheduledRequest.logs.length).toEqual(4);
         expect(newScheduledRequest.currentLog.status).toBe(
@@ -186,6 +189,7 @@ describe("ScheduledRequest Entity", () => {
             newScheduledRequest.provider
         );
         expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
+        expect(newScheduledRequest.currentLog.reason).toEqual("foo");
     });
 
     it("should not be able to the provider cancel the request before beginning", () => {
@@ -194,7 +198,7 @@ describe("ScheduledRequest Entity", () => {
         newScheduledRequest.schedule(newScheduledRequest.client);
 
         expect(() => {
-            newScheduledRequest.cancel(newScheduledRequest.provider);
+            newScheduledRequest.cancel(newScheduledRequest.provider, "foo");
         }).toThrow("It's not possible to cancel the request before beginning");
     });
 
@@ -202,7 +206,7 @@ describe("ScheduledRequest Entity", () => {
         const newScheduledRequest = makeFakeScheduledRequest();
 
         expect(() => {
-            newScheduledRequest.cancel(newScheduledRequest.client);
+            newScheduledRequest.cancel(newScheduledRequest.client, "foo");
         }).toThrow("It's not possible to cancel the request before scheduling");
     });
 
@@ -218,7 +222,7 @@ describe("ScheduledRequest Entity", () => {
         newScheduledRequest.finish(newScheduledRequest.provider);
 
         expect(() => {
-            newScheduledRequest.cancel(newScheduledRequest.client);
+            newScheduledRequest.cancel(newScheduledRequest.client, "foo");
         }).toThrow("It's not possible to cancel the request after finished");
     });
 
@@ -227,10 +231,10 @@ describe("ScheduledRequest Entity", () => {
 
         newScheduledRequest.schedule(newScheduledRequest.client);
 
-        newScheduledRequest.cancel(newScheduledRequest.client);
+        newScheduledRequest.cancel(newScheduledRequest.client, "foo");
 
         expect(() => {
-            newScheduledRequest.cancel(newScheduledRequest.client);
+            newScheduledRequest.cancel(newScheduledRequest.client, "foo");
         }).toThrow("It's not possible to cancel the request more than once");
     });
 
@@ -246,11 +250,10 @@ describe("ScheduledRequest Entity", () => {
         newScheduledRequest.finish(newScheduledRequest.provider);
 
         expect(() => {
-            newScheduledRequest.cancel(newScheduledRequest.provider);
+            newScheduledRequest.cancel(newScheduledRequest.provider, "foo");
         }).toThrow("It's not possible to cancel the request after finished");
     });
 
-    
     it("should not be able to the provider cancel the request more than once", () => {
         const newScheduledRequest = makeFakeScheduledRequest();
 
@@ -258,10 +261,10 @@ describe("ScheduledRequest Entity", () => {
 
         newScheduledRequest.begin(newScheduledRequest.provider);
 
-        newScheduledRequest.cancel(newScheduledRequest.provider);
+        newScheduledRequest.cancel(newScheduledRequest.provider, "foo");
 
         expect(() => {
-            newScheduledRequest.cancel(newScheduledRequest.provider);
+            newScheduledRequest.cancel(newScheduledRequest.provider, "foo");
         }).toThrow("It's not possible to cancel the request more than once");
     });
 
@@ -406,7 +409,7 @@ describe("ScheduledRequest Entity", () => {
 
         newScheduledRequest.begin(newScheduledRequest.provider);
 
-        newScheduledRequest.cancel(newScheduledRequest.client);
+        newScheduledRequest.cancel(newScheduledRequest.client, "foo");
 
         expect(() => {
             newScheduledRequest.finish(newScheduledRequest.client);
@@ -444,7 +447,7 @@ describe("ScheduledRequest Entity", () => {
 
         newScheduledRequest.begin(newScheduledRequest.provider);
 
-        newScheduledRequest.cancel(newScheduledRequest.client);
+        newScheduledRequest.cancel(newScheduledRequest.client, "foo");
 
         expect(() => {
             newScheduledRequest.finish(newScheduledRequest.provider);

@@ -67,11 +67,16 @@ export default abstract class Request<T> {
         this.saveLog(RequestStatus.CREATED, this._client);
     }
 
-    protected saveLog(status: TRequestStatus<T>, user: User): void {
+    protected saveLog(
+        status: TRequestStatus<T>,
+        user: User,
+        reason?: string
+    ): void {
         this._logs.push({
             status,
             changedBy: user,
             changedAt: new Date(),
+            reason,
         });
     }
 
@@ -87,8 +92,8 @@ export default abstract class Request<T> {
         RequestStatus.BEGAN,
         "It's not possible to cancel the request before beginning"
     )
-    cancel(user: User): void {
-        this.saveLog(RequestStatus.CANCELLED, user);
+    cancel(user: User, reason: string): void {
+        this.saveLog(RequestStatus.CANCELLED, user, reason);
     }
 
     @onlyProvider("Only the provider should begin the request")
