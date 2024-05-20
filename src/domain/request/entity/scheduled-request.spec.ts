@@ -481,7 +481,13 @@ describe("ScheduledRequest Entity", () => {
 
         newScheduledRequest.finish(newScheduledRequest.client);
 
-        newScheduledRequest.rate(newScheduledRequest.client);
+        const spiedMethod = jest.spyOn(newScheduledRequest.provider, "rate");
+
+        newScheduledRequest.rate(
+            newScheduledRequest.client,
+            newScheduledRequest.provider,
+            5
+        );
 
         expect(newScheduledRequest.logs.length).toEqual(5);
         expect(newScheduledRequest.currentLog.status).toBe(RequestStatus.RATED);
@@ -489,6 +495,7 @@ describe("ScheduledRequest Entity", () => {
             newScheduledRequest.client
         );
         expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
+        expect(spiedMethod).toHaveBeenCalledWith(5);
     });
 
     it("should be able to the provider rate the request client", () => {
@@ -502,7 +509,13 @@ describe("ScheduledRequest Entity", () => {
 
         newScheduledRequest.finish(newScheduledRequest.provider);
 
-        newScheduledRequest.rate(newScheduledRequest.provider);
+        const spiedMethod = jest.spyOn(newScheduledRequest.client, "rate");
+
+        newScheduledRequest.rate(
+            newScheduledRequest.provider,
+            newScheduledRequest.client,
+            5
+        );
 
         expect(newScheduledRequest.logs.length).toEqual(5);
         expect(newScheduledRequest.currentLog.status).toBe(RequestStatus.RATED);
@@ -510,6 +523,7 @@ describe("ScheduledRequest Entity", () => {
             newScheduledRequest.provider
         );
         expect(newScheduledRequest.currentLog.changedAt).toBeDefined();
+        expect(spiedMethod).toHaveBeenCalledWith(5);
     });
 
     it("should not be able to the client rate the request provider before finishing", () => {
@@ -522,7 +536,11 @@ describe("ScheduledRequest Entity", () => {
         newScheduledRequest.begin(newScheduledRequest.provider);
 
         expect(() => {
-            newScheduledRequest.rate(newScheduledRequest.client);
+            newScheduledRequest.rate(
+                newScheduledRequest.client,
+                newScheduledRequest.provider,
+                5
+            );
         }).toThrow("It's not possible to rate the request before finishing");
     });
 
@@ -537,10 +555,18 @@ describe("ScheduledRequest Entity", () => {
 
         newScheduledRequest.finish(newScheduledRequest.client);
 
-        newScheduledRequest.rate(newScheduledRequest.client);
+        newScheduledRequest.rate(
+            newScheduledRequest.client,
+            newScheduledRequest.provider,
+            5
+        );
 
         expect(() => {
-            newScheduledRequest.rate(newScheduledRequest.client);
+            newScheduledRequest.rate(
+                newScheduledRequest.client,
+                newScheduledRequest.provider,
+                5
+            );
         }).toThrow("It's not possible to rate the request more than once");
     });
 
@@ -554,7 +580,11 @@ describe("ScheduledRequest Entity", () => {
         newScheduledRequest.begin(newScheduledRequest.provider);
 
         expect(() => {
-            newScheduledRequest.rate(newScheduledRequest.provider);
+            newScheduledRequest.rate(
+                newScheduledRequest.provider,
+                newScheduledRequest.client,
+                5
+            );
         }).toThrow("It's not possible to rate the request before finishing");
     });
 
@@ -569,10 +599,18 @@ describe("ScheduledRequest Entity", () => {
 
         newScheduledRequest.finish(newScheduledRequest.provider);
 
-        newScheduledRequest.rate(newScheduledRequest.provider);
+        newScheduledRequest.rate(
+            newScheduledRequest.provider,
+            newScheduledRequest.client,
+            5
+        );
 
         expect(() => {
-            newScheduledRequest.rate(newScheduledRequest.provider);
+            newScheduledRequest.rate(
+                newScheduledRequest.provider,
+                newScheduledRequest.client,
+                5
+            );
         }).toThrow("It's not possible to rate the request more than once");
     });
 });

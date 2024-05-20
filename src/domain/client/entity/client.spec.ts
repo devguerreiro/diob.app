@@ -46,6 +46,28 @@ describe("Client Entity", () => {
         expect(client.contact).toBe(newContact);
     });
 
+    it("should be able to rate", () => {
+        const client = makeFakeClient();
+
+        client.rate(5);
+        client.rate(1);
+        client.rate(3);
+
+        expect(client.rating).toEqual(3);
+    });
+
+    it("should not be able to rate ", () => {
+        const client = makeFakeClient();
+
+        expect(() => {
+            client.rate(0.99);
+        }).toThrow("Rating must be between 1 and 5");
+
+        expect(() => {
+            client.rate(5.01);
+        }).toThrow("Rating must be between 1 and 5");
+    });
+
     it("should be able to change its address", () => {
         const client = makeFakeClient();
 

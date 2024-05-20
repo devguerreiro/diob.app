@@ -51,6 +51,28 @@ describe("Provider Entity", () => {
         expect(provider.contact).toBe(newContact);
     });
 
+    it("should be able to rate", () => {
+        const provider = makeFakeProvider();
+
+        provider.rate(5);
+        provider.rate(1);
+        provider.rate(3);
+
+        expect(provider.rating).toEqual(3);
+    });
+
+    it("should not be able to rate ", () => {
+        const provider = makeFakeProvider();
+
+        expect(() => {
+            provider.rate(0.99);
+        }).toThrow("Rating must be between 1 and 5");
+
+        expect(() => {
+            provider.rate(5.01);
+        }).toThrow("Rating must be between 1 and 5");
+    });
+
     it("should not be able to create if has no work", () => {
         expect(makeFakeProviderWithoutWork).toThrow(
             "Provider must have at least one work"

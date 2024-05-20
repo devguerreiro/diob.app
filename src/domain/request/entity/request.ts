@@ -125,7 +125,9 @@ export default abstract class Request<T> {
         RequestStatus.FINISHED,
         "It's not possible to rate the request before finishing"
     )
-    rate(evaluator: User): void {
+    rate(evaluator: User, evaluated: User, rating: number): void {
+        evaluated.rate(rating);
+
         this.saveLog(RequestStatus.RATED, evaluator);
     }
 }

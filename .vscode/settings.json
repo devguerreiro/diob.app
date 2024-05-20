@@ -4,6 +4,7 @@
         "provider",
         "job request",
         "scheduled request",
-        "request"
+        "request",
+        "user"
     ]
 }

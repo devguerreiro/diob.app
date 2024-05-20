@@ -7,6 +7,8 @@ import {
 } from "@/domain/@shared/value-object/user";
 
 export default abstract class User {
+    private _ratings: Array<number> = [];
+
     constructor(
         private _id: string,
         private _name: string,
@@ -40,6 +42,13 @@ export default abstract class User {
         return this._dob;
     }
 
+    get rating(): number {
+        return (
+            this._ratings.reduce((total, rating) => total + rating, 0) /
+            this._ratings.length
+        );
+    }
+
     changeName(name: string): void {
         this._name = name;
     }
@@ -58,5 +67,13 @@ export default abstract class User {
         if (age < 18) {
             throw new Error(`${this.constructor.name} must not be underage`);
         }
+    }
+
+    rate(rating: number): void {
+        if (rating < 1 || rating > 5) {
+            throw new Error("Rating must be between 1 and 5");
+        }
+
+        this._ratings.push(rating);
     }
 }
