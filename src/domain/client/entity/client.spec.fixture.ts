@@ -1,4 +1,4 @@
-import { faker } from "@faker-js/faker";
+import { v4 as uuidV4 } from "uuid";
 
 import { UserDocument } from "@/domain/@shared/value-object/user";
 import { ClientAddress } from "@/domain/client/value-object/client";
@@ -12,16 +12,12 @@ import {
     makeFakeUserEmail,
 } from "@/domain/@shared/entity/user.spec.fixture";
 
-export const makeFakeClientAddress = () =>
-    new ClientAddress(
-        faker.helpers.fromRegExp("[0-9]{5}-[0-9]{3}"),
-        faker.number.int()
-    );
+export const makeFakeClientAddress = () => new ClientAddress("12345-678", 123);
 
 export const makeFakeClient = () =>
     new Client(
-        faker.string.uuid(),
-        faker.person.fullName(),
+        uuidV4(),
+        "Client",
         new UserDocument("881.971.600-31"),
         makeFakeUserEmail(),
         makeFakeUserContact(),
@@ -31,8 +27,8 @@ export const makeFakeClient = () =>
 
 export const makeFakeUnderageClient = () =>
     new Client(
-        faker.string.uuid(),
-        faker.person.fullName(),
+        uuidV4(),
+        "Underage Client",
         new UserDocument("881.971.600-31"),
         makeFakeUserEmail(),
         makeFakeUserContact(),

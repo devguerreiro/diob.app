@@ -1,19 +1,13 @@
 import dayjs from "dayjs";
-import { faker } from "@faker-js/faker";
 
 import { UserContact, UserEmail } from "@/domain/@shared/value-object/user";
 
-export const makeFakeUserEmail = () => new UserEmail(faker.internet.email());
+export const makeFakeUserEmail = () => new UserEmail("example@example.com");
 
-export const makeFakeUserContact = () =>
-    new UserContact(faker.helpers.fromRegExp("([0-9]{2}) 9[0-9]{4}-[0-9]{4}"));
+export const makeFakeUserContact = () => new UserContact("(47) 98877-6655");
 
 export const makeFakeLegalAgeUserDOB = () =>
-    dayjs()
-        .subtract(faker.number.int({ min: 18, max: 80 }), "year")
-        .toDate();
+    dayjs().subtract(25, "year").toDate();
 
 export const makeFakeUnderAgeUserDOB = () =>
-    dayjs()
-        .subtract(faker.number.int({ min: 12, max: 17 }), "year")
-        .toDate();
+    dayjs().subtract(16, "year").toDate();

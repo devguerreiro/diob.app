@@ -1,4 +1,4 @@
-import { faker } from "@faker-js/faker";
+import { v4 as uuidV4 } from "uuid";
 
 import { UserDocument } from "@/domain/@shared/value-object/user";
 
@@ -12,24 +12,15 @@ import {
 } from "@/domain/@shared/entity/user.spec.fixture";
 
 export const makeFakeProviderWorkJob = () =>
-    new ProviderWorkJob(
-        faker.string.uuid(),
-        faker.word.noun(),
-        faker.number.float()
-    );
+    new ProviderWorkJob(uuidV4(), "Work Job", 50);
 
 export const makeFakeProviderWork = () =>
-    new ProviderWork(
-        faker.string.uuid(),
-        faker.word.noun(),
-        [makeFakeProviderWorkJob()],
-        faker.number.float()
-    );
+    new ProviderWork(uuidV4(), "Work", [makeFakeProviderWorkJob()], 100);
 
 export const makeFakeProvider = () =>
     new Provider(
-        faker.string.uuid(),
-        faker.person.fullName(),
+        uuidV4(),
+        "Provider",
         new UserDocument("881.971.600-31"),
         makeFakeUserEmail(),
         makeFakeUserContact(),
@@ -39,8 +30,8 @@ export const makeFakeProvider = () =>
 
 export const makeFakeUnderageProvider = () =>
     new Provider(
-        faker.string.uuid(),
-        faker.person.fullName(),
+        uuidV4(),
+        "Underage Provider",
         new UserDocument("881.971.600-31"),
         makeFakeUserEmail(),
         makeFakeUserContact(),
@@ -50,8 +41,8 @@ export const makeFakeUnderageProvider = () =>
 
 export const makeFakeProviderWithoutWork = () =>
     new Provider(
-        faker.string.uuid(),
-        faker.person.fullName(),
+        uuidV4(),
+        "Provider Without Work",
         new UserDocument("881.971.600-31"),
         makeFakeUserEmail(),
         makeFakeUserContact(),
@@ -60,9 +51,4 @@ export const makeFakeProviderWithoutWork = () =>
     );
 
 export const makeFakeProviderWorkWithoutJob = () =>
-    new ProviderWork(
-        faker.string.uuid(),
-        faker.word.noun(),
-        [],
-        faker.number.float()
-    );
+    new ProviderWork(uuidV4(), "Provider Work Without Job", [], 100);

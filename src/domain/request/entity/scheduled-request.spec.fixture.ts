@@ -1,4 +1,4 @@
-import { faker } from "@faker-js/faker";
+import { v4 as uuidV4 } from "uuid";
 
 import ScheduledRequest from "./scheduled-request";
 
@@ -10,7 +10,7 @@ import {
 
 export const makeFakeScheduledRequest = () =>
     new ScheduledRequest(
-        faker.string.uuid(),
+        uuidV4(),
         makeFakeClient(),
         makeFakeProvider(),
         makeFakeProviderWork(),
