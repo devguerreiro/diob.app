@@ -118,4 +118,15 @@ describe("Client Repository tests", () => {
       data: model,
     });
   });
+
+  it("should be able to delete a client from database", async () => {
+    const client = makeFakeClient();
+    const repository = new ClientRepository();
+
+    await repository.delete(client.id);
+
+    expect(mockedPrisma.clientModel.delete).toHaveBeenCalledWith({
+      where: { id: client.id },
+    });
+  });
 });

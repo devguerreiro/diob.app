@@ -33,4 +33,8 @@ export default class ClientRepository
     });
     return ClientFactory.fromModel(updatedClient);
   }
+
+  async delete(id: string): Promise<void> {
+    await prisma.clientModel.delete({ where: { id } });
+  }
 }
