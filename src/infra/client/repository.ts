@@ -14,4 +14,9 @@ export default class ClientRepository
     const createdClient = await prisma.clientModel.create({ data });
     return ClientFactory.fromModel(createdClient);
   }
+
+  async all(): Promise<Array<Client>> {
+    const clients = await prisma.clientModel.findMany();
+    return clients.map((client) => ClientFactory.fromModel(client));
+  }
 }

@@ -31,4 +31,27 @@ describe("Client Repository tests", () => {
       data: model,
     });
   });
+
+  it("should be able to retrieve all clients from database", async () => {
+    const client = makeFakeClient();
+    const repository = new ClientRepository();
+    const models: Array<ClientModel> = Array(5).fill({
+      id: client.id,
+      name: client.name,
+      document: client.document.value,
+      email: client.email.value,
+      contact: client.contact.value,
+      dob: client.dob,
+      address_cep: client.address.value.cep,
+      address_number: client.address.value.number,
+      address_complement: client.address.value.complement ?? null,
+    });
+
+    mockedPrisma.clientModel.findMany.mockResolvedValue(models);
+
+    const clients = await repository.all();
+
+    expect(clients).toEqual(Array(5).fill(client));
+    expect(mockedPrisma.clientModel.findMany).toHaveBeenCalled();
+  });
 });
