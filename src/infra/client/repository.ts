@@ -19,4 +19,10 @@ export default class ClientRepository
     const clients = await prisma.clientModel.findMany();
     return clients.map((client) => ClientFactory.fromModel(client));
   }
+
+  async getByID(id: string): Promise<Client | null> {
+    const client = await prisma.clientModel.findUnique({ where: { id } });
+    if (client) return ClientFactory.fromModel(client);
+    return null;
+  }
 }

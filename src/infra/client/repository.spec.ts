@@ -54,4 +54,42 @@ describe("Client Repository tests", () => {
     expect(clients).toEqual(Array(5).fill(client));
     expect(mockedPrisma.clientModel.findMany).toHaveBeenCalled();
   });
+
+  it("should be able to retrieve a client by id from database", async () => {
+    const client = makeFakeClient();
+    const repository = new ClientRepository();
+    const model: ClientModel = {
+      id: client.id,
+      name: client.name,
+      document: client.document.value,
+      email: client.email.value,
+      contact: client.contact.value,
+      dob: client.dob,
+      address_cep: client.address.value.cep,
+      address_number: client.address.value.number,
+      address_complement: client.address.value.complement ?? null,
+    };
+
+    mockedPrisma.clientModel.findUnique.mockResolvedValue(model);
+
+    const retrievedClient = await repository.getByID(client.id);
+
+    expect(retrievedClient).toEqual(client);
+    expect(mockedPrisma.clientModel.findUnique).toHaveBeenCalledWith({
+      where: { id: client.id },
+    });
+  });
+
+  it("should return null if client does not exist on database", async () => {
+    const repository = new ClientRepository();
+
+    mockedPrisma.clientModel.findUnique.mockResolvedValue(null);
+
+    const retrievedClient = await repository.getByID("123");
+
+    expect(retrievedClient).toBe(null);
+    expect(mockedPrisma.clientModel.findUnique).toHaveBeenCalledWith({
+      where: { id: "123" },
+    });
+  });
 });
