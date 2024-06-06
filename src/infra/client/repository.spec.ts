@@ -92,4 +92,30 @@ describe("Client Repository tests", () => {
       where: { id: "123" },
     });
   });
+
+  it("should be able to update a client on database", async () => {
+    const client = makeFakeClient();
+    const repository = new ClientRepository();
+    const model: ClientModel = {
+      id: client.id,
+      name: client.name,
+      document: client.document.value,
+      email: client.email.value,
+      contact: client.contact.value,
+      dob: client.dob,
+      address_cep: client.address.value.cep,
+      address_number: client.address.value.number,
+      address_complement: client.address.value.complement ?? null,
+    };
+
+    mockedPrisma.clientModel.update.mockResolvedValue(model);
+
+    const updatedClient = await repository.update(client.id, model);
+
+    expect(updatedClient).toEqual(client);
+    expect(mockedPrisma.clientModel.update).toHaveBeenCalledWith({
+      where: { id: client.id },
+      data: model,
+    });
+  });
 });

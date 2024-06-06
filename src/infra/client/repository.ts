@@ -25,4 +25,12 @@ export default class ClientRepository
     if (client) return ClientFactory.fromModel(client);
     return null;
   }
+
+  async update(id: string, data: ClientModel): Promise<Client> {
+    const updatedClient = await prisma.clientModel.update({
+      where: { id },
+      data,
+    });
+    return ClientFactory.fromModel(updatedClient);
+  }
 }
