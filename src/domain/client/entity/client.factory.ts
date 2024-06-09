@@ -5,12 +5,16 @@ import {
   UserDocument,
   UserEmail,
 } from "@/domain/@shared/value-object/user";
+import FactoryInterface from "@/domain/@shared/interface/factory";
+
 import { ClientAddress } from "@/domain/client/value-object/client";
 
 import Client from "./client";
 
-export default class ClientFactory {
-  static fromModel(model: ClientModel): Client {
+export default class ClientFactory
+  implements FactoryInterface<ClientModel, Client>
+{
+  fromModel(model: ClientModel): Client {
     const _document = new UserDocument(model.document);
     const _contact = new UserContact(model.contact);
     const _email = new UserEmail(model.email);

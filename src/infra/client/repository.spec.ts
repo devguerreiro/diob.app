@@ -1,6 +1,6 @@
 import { ClientModel } from "@prisma/client";
 
-import { mockedPrisma } from "@/infra/lib/mocked-prisma";
+import { mockedPrisma } from "@/lib/mocked-prisma";
 
 import { makeFakeClient } from "@/domain/client/entity/client.spec.fixture";
 

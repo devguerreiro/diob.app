@@ -24,3 +24,29 @@ model ClientModel {
   address_number       Int
   address_complement   String? @db.VarChar(20)
 }
+
+model ProviderWorkJobModel {
+  id                   String  @id @default(uuid())
+  name                 String  @db.VarChar(150)
+  cost                 Float
+  provider_work_id     String
+  provider_work        ProviderWorkModel @relation(fields: [provider_work_id], references: [id])
+}
+
+model ProviderWorkModel {
+  id                   String  @id @default(uuid())
+  name                 String  @db.VarChar(150)
+  min_cost             Float
+  jobs                 ProviderWorkJobModel[]
+  providers            ProviderModel[]
+}
+
+model ProviderModel {
+  id                   String  @id @default(uuid())
+  name                 String  @db.VarChar(150)
+  document             String  @db.VarChar(14)
+  email                String  @db.VarChar(50)
+  contact              String  @db.VarChar(25)
+  dob                  DateTime
+  works                ProviderWorkModel[]
+}

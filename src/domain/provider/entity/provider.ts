@@ -55,8 +55,8 @@ export class ProviderWork {
   constructor(
     private _id: string,
     private _name: string,
-    private _jobs: Array<ProviderWorkJob>,
-    private _minCost: number
+    private _minCost: number,
+    private _jobs: Array<ProviderWorkJob>
   ) {
     this.validate();
   }

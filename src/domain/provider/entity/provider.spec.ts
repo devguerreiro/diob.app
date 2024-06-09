@@ -103,8 +103,8 @@ describe("Provider Entity", () => {
         const newWork = new ProviderWork(
             existingWork.id,
             existingWork.name,
+            existingWork.minCost,
             existingWork.jobs,
-            existingWork.minCost
         );
 
         expect(() => {

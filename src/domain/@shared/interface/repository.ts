@@ -1,4 +1,4 @@
-export interface Repository<T, K> {
+export default interface RepositoryInterface<T, K> {
   create: (data: K) => Promise<T>;
   all: () => Promise<Array<T>>;
   getByID: (id: string) => Promise<T | null>;

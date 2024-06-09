@@ -6,5 +6,5 @@ export default {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
-  setupFilesAfterEnv: ["./src/infra/lib/mocked-prisma.ts"],
+  setupFilesAfterEnv: ["./src/lib/mocked-prisma.ts"],
 } as JestConfigWithTsJest;

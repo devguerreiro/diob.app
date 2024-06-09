@@ -1,28 +1,30 @@
 import { ClientModel } from "@prisma/client";
 
-import { prisma } from "@/infra/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
-import { Repository } from "@/domain/@shared/interface/repository";
+import RepositoryInterface from "@/domain/@shared/interface/repository";
 
 import Client from "@/domain/client/entity/client";
 import ClientFactory from "@/domain/client/entity/client.factory";
 
+const factory = new ClientFactory();
+
 export default class ClientRepository
-  implements Repository<Client, ClientModel>
+  implements RepositoryInterface<Client, ClientModel>
 {
   async create(data: ClientModel): Promise<Client> {
     const createdClient = await prisma.clientModel.create({ data });
-    return ClientFactory.fromModel(createdClient);
+    return factory.fromModel(createdClient);
   }
 
   async all(): Promise<Array<Client>> {
     const clients = await prisma.clientModel.findMany();
-    return clients.map((client) => ClientFactory.fromModel(client));
+    return clients.map((client) => factory.fromModel(client));
   }
 
   async getByID(id: string): Promise<Client | null> {
     const client = await prisma.clientModel.findUnique({ where: { id } });
-    if (client) return ClientFactory.fromModel(client);
+    if (client) return factory.fromModel(client);
     return null;
   }
 
@@ -31,7 +33,7 @@ export default class ClientRepository
       where: { id },
       data,
     });
-    return ClientFactory.fromModel(updatedClient);
+    return factory.fromModel(updatedClient);
   }
 
   async delete(id: string): Promise<void> {
