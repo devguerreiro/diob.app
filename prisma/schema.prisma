@@ -14,39 +14,57 @@ datasource db {
 }
 
 model ClientModel {
-  id                   String  @id @default(uuid())
-  name                 String  @db.VarChar(150)
-  document             String  @db.VarChar(14)
-  email                String  @db.VarChar(50)
-  contact              String  @db.VarChar(25)
+  id                   String             @id @default(uuid())
+  name                 String             @db.VarChar(150)
+  document             String             @db.VarChar(14)
+  email                String             @db.VarChar(50)
+  contact              String             @db.VarChar(25)
   dob                  DateTime
-  address_cep          String @db.VarChar(9)
+  address_cep          String             @db.VarChar(9)
   address_number       Int
-  address_complement   String? @db.VarChar(20)
-}
-
-model ProviderWorkJobModel {
-  id                   String  @id @default(uuid())
-  name                 String  @db.VarChar(150)
-  cost                 Float
-  provider_work_id     String
-  provider_work        ProviderWorkModel @relation(fields: [provider_work_id], references: [id])
-}
-
-model ProviderWorkModel {
-  id                   String  @id @default(uuid())
-  name                 String  @db.VarChar(150)
-  min_cost             Float
-  jobs                 ProviderWorkJobModel[]
-  providers            ProviderModel[]
+  address_complement   String?            @db.VarChar(20)
 }
 
 model ProviderModel {
-  id                   String  @id @default(uuid())
-  name                 String  @db.VarChar(150)
-  document             String  @db.VarChar(14)
-  email                String  @db.VarChar(50)
-  contact              String  @db.VarChar(25)
+  id                   String             @id @default(uuid())
+  name                 String             @db.VarChar(150)
+  document             String             @db.VarChar(14)
+  email                String             @db.VarChar(50)
+  contact              String             @db.VarChar(25)
   dob                  DateTime
   works                ProviderWorkModel[]
+}
+
+model WorkModel {
+  id                   String             @id @default(uuid())
+  name                 String             @db.VarChar(150)
+  jobs                 JobModel[]
+  provider_works       ProviderWorkModel[]
+}
+
+model JobModel {
+  id                   String             @id @default(uuid())
+  name                 String             @db.VarChar(150)
+  work_id              String
+  work                 WorkModel          @relation(fields: [work_id], references: [id])
+  provider_work_jobs   ProviderWorkJobModel[]
+}
+
+model ProviderWorkModel {
+  id                   String             @id @default(uuid())
+  work_id              String
+  provider_id          String
+  work                 WorkModel          @relation(fields: [work_id], references: [id])
+  provider             ProviderModel      @relation(fields: [provider_id], references: [id])
+  jobs                 ProviderWorkJobModel[]
+  min_cost             Float
+}
+
+model ProviderWorkJobModel {
+  id                   String             @id @default(uuid())
+  provider_work_id     String
+  job_id               String
+  provider_work        ProviderWorkModel  @relation(fields: [provider_work_id], references: [id])
+  job                  JobModel           @relation(fields: [job_id], references:[id])
+  cost                 Float
 }
