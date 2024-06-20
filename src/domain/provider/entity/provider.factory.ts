@@ -6,14 +6,14 @@ import {
   UserEmail,
 } from "@/domain/@shared/value-object/user";
 
-import { ProviderWithWorksModel } from "@/infra/provider/model";
+import { ProviderReadModel } from "@/infra/provider/model";
 
 import Provider, { ProviderWork, ProviderWorkJob } from "./provider";
 
 export default class ProviderFactory
-  implements FactoryInterface<ProviderWithWorksModel, Provider>
+  implements FactoryInterface<ProviderReadModel, Provider>
 {
-  fromModel(model: ProviderWithWorksModel): Provider {
+  fromModel(model: ProviderReadModel): Provider {
     const _document = new UserDocument(model.document);
     const _contact = new UserContact(model.contact);
     const _email = new UserEmail(model.email);
@@ -26,9 +26,9 @@ export default class ProviderFactory
       model.dob,
       model.works.map((work) => {
         const jobs = work.jobs.map(
-          (job) => new ProviderWorkJob(job.id, job.name, job.cost)
+          (job) => new ProviderWorkJob(job.id, job.job.name, job.cost)
         );
-        return new ProviderWork(work.id, work.name, work.min_cost, jobs);
+        return new ProviderWork(work.id, work.work.name, work.min_cost, jobs);
       })
     );
   }

@@ -3,52 +3,71 @@ import { mockedPrisma } from "@/lib/mocked-prisma";
 import { makeFakeProvider } from "@/domain/provider/entity/provider.spec.fixture";
 
 import ProviderRepository from "./repository";
-import { ProviderWithWorksModel } from "./model";
+import {
+  ProviderCreateModel,
+  ProviderReadModel,
+  ProviderUpdateModel,
+} from "./model";
 
 describe("Provider Repository tests", () => {
   it("should be able to insert a provider on database", async () => {
     const provider = makeFakeProvider();
     const repository = new ProviderRepository();
-    const model: ProviderWithWorksModel = {
+
+    const data: ProviderCreateModel = {
+      name: provider.name,
+      document: provider.document.value,
+      email: provider.email.value,
+      contact: provider.contact.value,
+      dob: provider.dob,
+    };
+
+    const createdProvider: ProviderReadModel = {
       id: provider.id,
       name: provider.name,
       document: provider.document.value,
       email: provider.email.value,
       contact: provider.contact.value,
       dob: provider.dob,
-      works: provider.works.map((work) => {
-        return {
+      works: provider.works.map((work) => ({
+        work: {
           id: work.id,
           name: work.name,
-          min_cost: work.minCost,
-          jobs: work.jobs.map((job) => {
-            return {
-              id: job.id,
-              name: job.name,
-              cost: job.cost,
-              provider_work_id: work.id,
-            };
-          }),
-        };
-      }),
+        },
+        jobs: work.jobs.map((job) => ({
+          id: job.id,
+          job: {
+            id: job.id,
+            name: job.name,
+            work_id: work.id,
+          },
+          provider_work_id: work.id,
+          job_id: job.id,
+          cost: job.cost,
+        })),
+        id: work.id,
+        work_id: work.id,
+        provider_id: provider.id,
+        min_cost: work.minCost,
+      })),
     };
 
-    mockedPrisma.providerModel.create.mockResolvedValue(model);
+    mockedPrisma.providerModel.create.mockResolvedValue(createdProvider);
 
-    const createdProvider = await repository.create(model);
+    const returnedProvider = await repository.create(data);
 
-    expect(createdProvider).toEqual(provider);
+    expect(returnedProvider).toEqual(provider);
     expect(mockedPrisma.providerModel.create).toHaveBeenCalledWith({
-      data: {
-        ...model,
-        works: {
-          connect: model.works.map((work) => ({ id: work.id })),
-        },
-      },
+      data,
       include: {
         works: {
           include: {
-            jobs: true,
+            work: true,
+            jobs: {
+              include: {
+                job: true,
+              },
+            },
           },
         },
       },
@@ -58,28 +77,35 @@ describe("Provider Repository tests", () => {
   it("should be able to retrieve all providers from database", async () => {
     const provider = makeFakeProvider();
     const repository = new ProviderRepository();
-    const models: Array<ProviderWithWorksModel> = Array(5).fill({
+
+    const models: Array<ProviderReadModel> = Array(5).fill({
       id: provider.id,
       name: provider.name,
       document: provider.document.value,
       email: provider.email.value,
       contact: provider.contact.value,
       dob: provider.dob,
-      works: provider.works.map((work) => {
-        return {
+      works: provider.works.map((work) => ({
+        work: {
           id: work.id,
           name: work.name,
-          min_cost: work.minCost,
-          jobs: work.jobs.map((job) => {
-            return {
-              id: job.id,
-              name: job.name,
-              cost: job.cost,
-              provider_work_id: work.id,
-            };
-          }),
-        };
-      }),
+        },
+        jobs: work.jobs.map((job) => ({
+          id: job.id,
+          job: {
+            id: job.id,
+            name: job.name,
+            work_id: work.id,
+          },
+          provider_work_id: work.id,
+          job_id: job.id,
+          cost: job.cost,
+        })),
+        id: work.id,
+        work_id: work.id,
+        provider_id: provider.id,
+        min_cost: work.minCost,
+      })),
     });
 
     mockedPrisma.providerModel.findMany.mockResolvedValue(models);
@@ -91,7 +117,12 @@ describe("Provider Repository tests", () => {
       include: {
         works: {
           include: {
-            jobs: true,
+            work: true,
+            jobs: {
+              include: {
+                job: true,
+              },
+            },
           },
         },
       },
@@ -101,28 +132,34 @@ describe("Provider Repository tests", () => {
   it("should be able to retrieve a provider by id from database", async () => {
     const provider = makeFakeProvider();
     const repository = new ProviderRepository();
-    const model: ProviderWithWorksModel = {
+    const model: ProviderReadModel = {
       id: provider.id,
       name: provider.name,
       document: provider.document.value,
       email: provider.email.value,
       contact: provider.contact.value,
       dob: provider.dob,
-      works: provider.works.map((work) => {
-        return {
+      works: provider.works.map((work) => ({
+        work: {
           id: work.id,
           name: work.name,
-          min_cost: work.minCost,
-          jobs: work.jobs.map((job) => {
-            return {
-              id: job.id,
-              name: job.name,
-              cost: job.cost,
-              provider_work_id: work.id,
-            };
-          }),
-        };
-      }),
+        },
+        jobs: work.jobs.map((job) => ({
+          id: job.id,
+          job: {
+            id: job.id,
+            name: job.name,
+            work_id: work.id,
+          },
+          provider_work_id: work.id,
+          job_id: job.id,
+          cost: job.cost,
+        })),
+        id: work.id,
+        work_id: work.id,
+        provider_id: provider.id,
+        min_cost: work.minCost,
+      })),
     };
 
     mockedPrisma.providerModel.findUnique.mockResolvedValue(model);
@@ -135,7 +172,12 @@ describe("Provider Repository tests", () => {
       include: {
         works: {
           include: {
-            jobs: true,
+            work: true,
+            jobs: {
+              include: {
+                job: true,
+              },
+            },
           },
         },
       },
@@ -155,7 +197,12 @@ describe("Provider Repository tests", () => {
       include: {
         works: {
           include: {
-            jobs: true,
+            work: true,
+            jobs: {
+              include: {
+                job: true,
+              },
+            },
           },
         },
       },
@@ -165,47 +212,62 @@ describe("Provider Repository tests", () => {
   it("should be able to update a provider on database", async () => {
     const provider = makeFakeProvider();
     const repository = new ProviderRepository();
-    const model: ProviderWithWorksModel = {
+
+    const data: ProviderUpdateModel = {
+      name: provider.name,
+      document: provider.document.value,
+      email: provider.email.value,
+      contact: provider.contact.value,
+      dob: provider.dob,
+    };
+
+    const updatedProvider: ProviderReadModel = {
       id: provider.id,
       name: provider.name,
       document: provider.document.value,
       email: provider.email.value,
       contact: provider.contact.value,
       dob: provider.dob,
-      works: provider.works.map((work) => {
-        return {
+      works: provider.works.map((work) => ({
+        work: {
           id: work.id,
           name: work.name,
-          min_cost: work.minCost,
-          jobs: work.jobs.map((job) => {
-            return {
-              id: job.id,
-              name: job.name,
-              cost: job.cost,
-              provider_work_id: work.id,
-            };
-          }),
-        };
-      }),
+        },
+        jobs: work.jobs.map((job) => ({
+          id: job.id,
+          job: {
+            id: job.id,
+            name: job.name,
+            work_id: work.id,
+          },
+          provider_work_id: work.id,
+          job_id: job.id,
+          cost: job.cost,
+        })),
+        id: work.id,
+        work_id: work.id,
+        provider_id: provider.id,
+        min_cost: work.minCost,
+      })),
     };
 
-    mockedPrisma.providerModel.update.mockResolvedValue(model);
+    mockedPrisma.providerModel.update.mockResolvedValue(updatedProvider);
 
-    const updatedProvider = await repository.update(provider.id, model);
+    const returnedProvider = await repository.update(provider.id, data);
 
-    expect(updatedProvider).toEqual(provider);
+    expect(returnedProvider).toEqual(provider);
     expect(mockedPrisma.providerModel.update).toHaveBeenCalledWith({
       where: { id: provider.id },
-      data: {
-        ...model,
-        works: {
-          connect: model.works.map((work) => ({ id: work.id })),
-        },
-      },
+      data,
       include: {
         works: {
           include: {
-            jobs: true,
+            work: true,
+            jobs: {
+              include: {
+                job: true,
+              },
+            },
           },
         },
       },

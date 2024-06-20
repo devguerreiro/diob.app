@@ -1,7 +1,7 @@
-export default interface RepositoryInterface<T, K> {
-  create: (data: K) => Promise<T>;
+export default interface RepositoryInterface<T> {
+  create: (...args: Array<never>) => Promise<T>;
   all: () => Promise<Array<T>>;
   getByID: (id: string) => Promise<T | null>;
-  update: (id: string, data: K) => Promise<T>;
+  update: (id: string, ...args: Array<never>) => Promise<T>;
   delete: (id: string) => Promise<void>;
 }

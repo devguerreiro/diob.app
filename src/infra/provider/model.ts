@@ -1,11 +1,40 @@
 import { Prisma } from "@prisma/client";
 
-export type ProviderWithWorksModel = Prisma.ProviderModelGetPayload<{
+export const ProviderReadOptions = {
   include: {
     works: {
       include: {
-        jobs: true;
-      };
-    };
+        work: true,
+        jobs: {
+          include: {
+            job: true,
+          },
+        },
+      },
+    },
+  },
+};
+
+export type ProviderReadModel = Prisma.ProviderModelGetPayload<
+  typeof ProviderReadOptions
+>;
+
+export type ProviderCreateModel = Prisma.ProviderModelGetPayload<{
+  select: {
+    name: true;
+    document: true;
+    email: true;
+    contact: true;
+    dob: true;
+  };
+}>;
+
+export type ProviderUpdateModel = Prisma.ProviderModelGetPayload<{
+  select: {
+    name: true;
+    document: true;
+    email: true;
+    contact: true;
+    dob: true;
   };
 }>;

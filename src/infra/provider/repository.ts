@@ -5,41 +5,28 @@ import RepositoryInterface from "@/domain/@shared/interface/repository";
 import Provider from "@/domain/provider/entity/provider";
 import ProviderFactory from "@/domain/provider/entity/provider.factory";
 
-import { ProviderWithWorksModel } from "./model";
+import {
+  ProviderReadOptions,
+  ProviderCreateModel,
+  ProviderUpdateModel,
+} from "./model";
 
 const factory = new ProviderFactory();
 
 export default class ProviderRepository
-  implements RepositoryInterface<Provider, ProviderWithWorksModel>
+  implements RepositoryInterface<Provider>
 {
-  async create(data: ProviderWithWorksModel): Promise<Provider> {
+  async create(data: ProviderCreateModel): Promise<Provider> {
     const createdProvider = await prisma.providerModel.create({
-      data: {
-        ...data,
-        works: {
-          connect: data.works.map((work) => ({ id: work.id })),
-        },
-      },
-      include: {
-        works: {
-          include: {
-            jobs: true,
-          },
-        },
-      },
+      data,
+      ...ProviderReadOptions,
     });
     return factory.fromModel(createdProvider);
   }
 
   async all(): Promise<Array<Provider>> {
     const providers = await prisma.providerModel.findMany({
-      include: {
-        works: {
-          include: {
-            jobs: true,
-          },
-        },
-      },
+      ...ProviderReadOptions,
     });
     return providers.map((provider) => factory.fromModel(provider));
   }
@@ -47,34 +34,17 @@ export default class ProviderRepository
   async getByID(id: string): Promise<Provider | null> {
     const provider = await prisma.providerModel.findUnique({
       where: { id },
-      include: {
-        works: {
-          include: {
-            jobs: true,
-          },
-        },
-      },
+      ...ProviderReadOptions,
     });
     if (provider) return factory.fromModel(provider);
     return null;
   }
 
-  async update(id: string, data: ProviderWithWorksModel): Promise<Provider> {
+  async update(id: string, data: ProviderUpdateModel): Promise<Provider> {
     const updatedProvider = await prisma.providerModel.update({
       where: { id },
-      data: {
-        ...data,
-        works: {
-          connect: data.works.map((work) => ({ id: work.id })),
-        },
-      },
-      include: {
-        works: {
-          include: {
-            jobs: true,
-          },
-        },
-      },
+      data,
+      ...ProviderReadOptions,
     });
     return factory.fromModel(updatedProvider);
   }

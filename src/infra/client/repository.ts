@@ -9,9 +9,7 @@ import ClientFactory from "@/domain/client/entity/client.factory";
 
 const factory = new ClientFactory();
 
-export default class ClientRepository
-  implements RepositoryInterface<Client, ClientModel>
-{
+export default class ClientRepository implements RepositoryInterface<Client> {
   async create(data: ClientModel): Promise<Client> {
     const createdClient = await prisma.clientModel.create({ data });
     return factory.fromModel(createdClient);
