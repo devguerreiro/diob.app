@@ -7,6 +7,8 @@ import {
   ProviderCreateModel,
   ProviderReadModel,
   ProviderUpdateModel,
+  ProviderWorkJobUpdateModel,
+  ProviderWorkUpdateModel,
 } from "./model";
 
 describe("Provider Repository tests", () => {
@@ -20,6 +22,14 @@ describe("Provider Repository tests", () => {
       email: provider.email.value,
       contact: provider.contact.value,
       dob: provider.dob,
+      works: provider.works.map((work) => ({
+        work_id: work.id,
+        min_cost: work.minCost,
+        jobs: work.jobs.map((job) => ({
+          job_id: job.id,
+          cost: job.cost,
+        })),
+      })),
     };
 
     const createdProvider: ProviderReadModel = {
@@ -58,7 +68,23 @@ describe("Provider Repository tests", () => {
 
     expect(returnedProvider).toEqual(provider);
     expect(mockedPrisma.providerModel.create).toHaveBeenCalledWith({
-      data,
+      data: {
+        ...data,
+        works: {
+          createMany: {
+            data: data.works.map((work) => ({
+              work_id: work.work_id,
+              min_cost: work.min_cost,
+              jobs: {
+                create: work.jobs.map((job) => ({
+                  job_id: job.job_id,
+                  cost: job.cost,
+                })),
+              },
+            })),
+          },
+        },
+      },
       include: {
         works: {
           include: {
@@ -132,6 +158,7 @@ describe("Provider Repository tests", () => {
   it("should be able to retrieve a provider by id from database", async () => {
     const provider = makeFakeProvider();
     const repository = new ProviderRepository();
+
     const model: ProviderReadModel = {
       id: provider.id,
       name: provider.name,
@@ -283,5 +310,297 @@ describe("Provider Repository tests", () => {
     expect(mockedPrisma.providerModel.delete).toHaveBeenCalledWith({
       where: { id: provider.id },
     });
+  });
+
+  it("should be able to delete a provider work from database", async () => {
+    const provider = makeFakeProvider();
+    const repository = new ProviderRepository();
+
+    const updatedProvider: ProviderReadModel = {
+      id: provider.id,
+      name: provider.name,
+      document: provider.document.value,
+      email: provider.email.value,
+      contact: provider.contact.value,
+      dob: provider.dob,
+      works: provider.works.map((work) => ({
+        work: {
+          id: work.id,
+          name: work.name,
+        },
+        jobs: work.jobs.map((job) => ({
+          id: job.id,
+          job: {
+            id: job.id,
+            name: job.name,
+            work_id: work.id,
+          },
+          provider_work_id: work.id,
+          job_id: job.id,
+          cost: job.cost,
+        })),
+        id: work.id,
+        work_id: work.id,
+        provider_id: provider.id,
+        min_cost: work.minCost,
+      })),
+    };
+
+    mockedPrisma.providerModel.update.mockResolvedValue(updatedProvider);
+
+    const returnedProvider = await repository.removeWork(
+      provider.id,
+      provider.works[0].id
+    );
+
+    expect(returnedProvider).toEqual(provider);
+    expect(mockedPrisma.providerModel.update).toHaveBeenCalledWith({
+      where: { id: provider.id },
+      data: {
+        works: {
+          delete: { id: provider.works[0].id },
+        },
+      },
+      include: {
+        works: {
+          include: {
+            work: true,
+            jobs: {
+              include: {
+                job: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  });
+
+  it("should be able to update a provider work on database", async () => {
+    const provider = makeFakeProvider();
+    const repository = new ProviderRepository();
+
+    const data: ProviderWorkUpdateModel = {
+      min_cost: 99,
+    };
+
+    const updatedProvider: ProviderReadModel = {
+      id: provider.id,
+      name: provider.name,
+      document: provider.document.value,
+      email: provider.email.value,
+      contact: provider.contact.value,
+      dob: provider.dob,
+      works: provider.works.map((work) => ({
+        work: {
+          id: work.id,
+          name: work.name,
+        },
+        jobs: work.jobs.map((job) => ({
+          id: job.id,
+          job: {
+            id: job.id,
+            name: job.name,
+            work_id: work.id,
+          },
+          provider_work_id: work.id,
+          job_id: job.id,
+          cost: job.cost,
+        })),
+        id: work.id,
+        work_id: work.id,
+        provider_id: provider.id,
+        min_cost: work.minCost,
+      })),
+    };
+
+    mockedPrisma.providerModel.update.mockResolvedValue(updatedProvider);
+
+    const returnedProvider = await repository.updateWork(
+      provider.id,
+      provider.works[0].id,
+      data
+    );
+
+    expect(returnedProvider).toEqual(provider);
+    expect(mockedPrisma.providerModel.update).toHaveBeenCalledWith({
+      where: { id: provider.id },
+      data: {
+        works: {
+          update: {
+            where: { id: provider.works[0].id },
+            data: {
+              min_cost: 99,
+            },
+          },
+        },
+      },
+      include: {
+        works: {
+          include: {
+            work: true,
+            jobs: {
+              include: {
+                job: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  });
+});
+
+it("should be able to delete a provider work job from database", async () => {
+  const provider = makeFakeProvider();
+  const repository = new ProviderRepository();
+
+  const updatedProvider: ProviderReadModel = {
+    id: provider.id,
+    name: provider.name,
+    document: provider.document.value,
+    email: provider.email.value,
+    contact: provider.contact.value,
+    dob: provider.dob,
+    works: provider.works.map((work) => ({
+      work: {
+        id: work.id,
+        name: work.name,
+      },
+      jobs: work.jobs.map((job) => ({
+        id: job.id,
+        job: {
+          id: job.id,
+          name: job.name,
+          work_id: work.id,
+        },
+        provider_work_id: work.id,
+        job_id: job.id,
+        cost: job.cost,
+      })),
+      id: work.id,
+      work_id: work.id,
+      provider_id: provider.id,
+      min_cost: work.minCost,
+    })),
+  };
+
+  mockedPrisma.providerModel.update.mockResolvedValue(updatedProvider);
+
+  const returnedProvider = await repository.removeWorkJob(
+    provider.id,
+    provider.works[0].id,
+    provider.works[0].jobs[0].id
+  );
+
+  expect(returnedProvider).toEqual(provider);
+  expect(mockedPrisma.providerModel.update).toHaveBeenCalledWith({
+    where: { id: provider.id },
+    data: {
+      works: {
+        update: {
+          where: { id: provider.works[0].id },
+          data: {
+            jobs: {
+              delete: { id: provider.works[0].jobs[0].id },
+            },
+          },
+        },
+      },
+    },
+    include: {
+      works: {
+        include: {
+          work: true,
+          jobs: {
+            include: {
+              job: true,
+            },
+          },
+        },
+      },
+    },
+  });
+});
+
+it("should be able to update a provider work job on database", async () => {
+  const provider = makeFakeProvider();
+  const repository = new ProviderRepository();
+
+  const data: ProviderWorkJobUpdateModel = {
+    cost: 99,
+  };
+
+  const updatedProvider: ProviderReadModel = {
+    id: provider.id,
+    name: provider.name,
+    document: provider.document.value,
+    email: provider.email.value,
+    contact: provider.contact.value,
+    dob: provider.dob,
+    works: provider.works.map((work) => ({
+      work: {
+        id: work.id,
+        name: work.name,
+      },
+      jobs: work.jobs.map((job) => ({
+        id: job.id,
+        job: {
+          id: job.id,
+          name: job.name,
+          work_id: work.id,
+        },
+        provider_work_id: work.id,
+        job_id: job.id,
+        cost: job.cost,
+      })),
+      id: work.id,
+      work_id: work.id,
+      provider_id: provider.id,
+      min_cost: work.minCost,
+    })),
+  };
+
+  mockedPrisma.providerModel.update.mockResolvedValue(updatedProvider);
+
+  const returnedProvider = await repository.updateWorkJob(
+    provider.id,
+    provider.works[0].id,
+    provider.works[0].jobs[0].id,
+    data
+  );
+
+  expect(returnedProvider).toEqual(provider);
+  expect(mockedPrisma.providerModel.update).toHaveBeenCalledWith({
+    where: { id: provider.id },
+    data: {
+      works: {
+        update: {
+          where: { id: provider.works[0].id },
+          data: {
+            jobs: {
+              update: {
+                where: { id: provider.works[0].jobs[0].id },
+                data: {
+                  cost: 99,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    include: {
+      works: {
+        include: {
+          work: true,
+          jobs: {
+            include: {
+              job: true,
+            },
+          },
+        },
+      },
+    },
   });
 });

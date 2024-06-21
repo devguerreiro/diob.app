@@ -26,6 +26,18 @@ export type ProviderCreateModel = Prisma.ProviderModelGetPayload<{
     email: true;
     contact: true;
     dob: true;
+    works: {
+      select: {
+        min_cost: true;
+        work_id: true;
+        jobs: {
+          select: {
+            cost: true;
+            job_id: true;
+          };
+        };
+      };
+    };
   };
 }>;
 
@@ -36,5 +48,17 @@ export type ProviderUpdateModel = Prisma.ProviderModelGetPayload<{
     email: true;
     contact: true;
     dob: true;
+  };
+}>;
+
+export type ProviderWorkUpdateModel = Prisma.ProviderWorkModelGetPayload<{
+  select: {
+    min_cost: true;
+  };
+}>;
+
+export type ProviderWorkJobUpdateModel = Prisma.ProviderWorkJobModelGetPayload<{
+  select: {
+    cost: true;
   };
 }>;
