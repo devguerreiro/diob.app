@@ -24,7 +24,6 @@ model ClientModel {
   address_cep          String             @db.VarChar(9)
   address_number       Int
   address_complement   String?            @db.VarChar(20)
-  requests             RequestModel[]
 }
 
 // prestador de servicos
@@ -36,7 +35,6 @@ model ProviderModel {
   contact              String             @db.VarChar(25)
   dob                  DateTime
   works                ProviderWorkModel[]
-  requests             RequestModel[]
 }
 
 // trabalhos disponiveis na plataforma
@@ -64,7 +62,6 @@ model ProviderWorkModel {
   work                 WorkModel          @relation(fields: [work_id], references: [id])
   provider             ProviderModel      @relation(fields: [provider_id], references: [id])
   jobs                 ProviderWorkJobModel[]
-  requests             RequestProviderWorkModel[]
   min_cost             Float
 }
 
@@ -75,39 +72,6 @@ model ProviderWorkJobModel {
   job_id               String
   provider_work        ProviderWorkModel  @relation(fields: [provider_work_id], references: [id])
   job                  WorkJobModel       @relation(fields: [job_id], references:[id])
-  requests             RequestProviderWorkJobModel[]
   cost                 Float
-}
-
-// solicitacao de prestacao de servicos
-model RequestModel {
-  id                   String             @id @default(uuid())
-  client_id            String
-  provider_id          String
-  client               ClientModel        @relation(fields: [client_id], references: [id])
-  provider             ProviderModel      @relation(fields: [provider_id], references: [id])
-  created_at           DateTime
-  updated_at           DateTime
-  total_cost           Float
-  works       RequestProviderWorkModel[]
-}
-
-// trabalhos solicitados ao prestador
-model RequestProviderWorkModel {
-  id                   String             @id @default(uuid())
-  request_id           String
-  provider_work_id     String
-  total_cost           Float
-  request              RequestModel       @relation(fields: [request_id], references:[id])
-  provider_work        ProviderWorkModel  @relation(fields: [provider_work_id], references: [id])
-  jobs                 RequestProviderWorkJobModel[]
-}
-
-// servicos dos trabalhos solicitados ao prestador
-model RequestProviderWorkJobModel {
-  id                          String                   @id @default(uuid())
-  request_provider_work_id    String
-  provider_work_job_id        String
-  request_provider_work       RequestProviderWorkModel @relation(fields: [request_provider_work_id], references: [id])
-  provider_work_job           ProviderWorkJobModel     @relation(fields: [provider_work_job_id], references: [id])
+  estimated_duration   Int
 }

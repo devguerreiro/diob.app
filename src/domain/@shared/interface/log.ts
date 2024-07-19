@@ -1,8 +1,8 @@
-import User from "../entity/user";
+import User from "@/domain/@shared/entity/user";
 
 export default interface LogInterface<T> {
-    status: T;
-    changedBy: User;
-    changedAt: Date;
-    reason?: string;
+  status: T;
+  by: User;
+  at: Date;
+  reason?: string;
 }
