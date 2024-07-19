@@ -73,7 +73,7 @@ export default class ServiceRequest {
     if (by !== this._client) {
       throw new Error("Only the client can schedule the request");
     } else if (this.currentLog.status !== StatusEnum.CREATED) {
-      throw new Error("The request can only be scheduled on CREATED stage");
+      throw new Error("The request cannot be scheduled on current stage");
     }
 
     this.saveLog(StatusEnum.SCHEDULED, by);
@@ -87,9 +87,7 @@ export default class ServiceRequest {
         this.currentLog.status
       )
     ) {
-      throw new Error(
-        "The request can only be rescheduled on SCHEDULED/RESCHEDULED stages"
-      );
+      throw new Error("The request cannot be rescheduled on current stage");
     }
 
     this.saveLog(StatusEnum.RESCHEDULED, by);
@@ -99,15 +97,19 @@ export default class ServiceRequest {
     if (by !== this._client) {
       throw new Error("Only the client can cancel the request");
     } else if (
+      this.logs.some(
+        (log) => log.status === StatusEnum.CANCELLED && log.by === by
+      )
+    ) {
+      throw new Error("The request can only be canceled once");
+    } else if (
       ![
         StatusEnum.SCHEDULED,
         StatusEnum.RESCHEDULED,
         StatusEnum.CONFIRMED,
       ].includes(this.currentLog.status)
     ) {
-      throw new Error(
-        "The request can only be canceled on SCHEDULED/RESCHEDULED/CONFIRMED stages"
-      );
+      throw new Error("The request cannot be canceled on current stage");
     }
 
     this.saveLog(StatusEnum.CANCELLED, by, reason);
@@ -149,7 +151,7 @@ export default class ServiceRequest {
     if (by !== this._provider) {
       throw new Error("Only the provider can start the request");
     } else if (this.currentLog.status !== StatusEnum.CONFIRMED) {
-      throw new Error("The request can only be started on CONFIRMED stage");
+      throw new Error("The request cannot be started on current stage");
     } else if (new Date() < this.when) {
       throw new Error(
         "The request can only be started after the scheduled date and time"
@@ -161,38 +163,32 @@ export default class ServiceRequest {
 
   finish(by: User): void {
     if (
-      ![StatusEnum.STARTED, StatusEnum.FINISHED].includes(
-        this.currentLog.status
-      )
-    ) {
-      throw new Error(
-        "The request can only be finished on STARTED/FINISHED stages"
-      );
-    } else if (
       this._logs.some(
         (log) => log.status === StatusEnum.FINISHED && log.by === by
       )
     ) {
       throw new Error("The request can only be finished once");
-    }
-
-    this.saveLog(StatusEnum.FINISHED, by);
+    } else if (
+      ![StatusEnum.STARTED, StatusEnum.FINISHED].includes(
+        this.currentLog.status
+      )
+    ) {
+      throw new Error("The request cannot be finished on current stage");
+    } else this.saveLog(StatusEnum.FINISHED, by);
   }
 
   rate(evaluator: User, evaluated: User, rating: number): void {
     if (
-      ![StatusEnum.FINISHED, StatusEnum.RATED].includes(this.currentLog.status)
-    ) {
-      throw new Error("The request can only be rated on FINISHED/RATED stages");
-    } else if (
-      this._logs.some(
+      this.logs.some(
         (log) => log.status === StatusEnum.RATED && log.by === evaluator
       )
     ) {
       throw new Error("The request can only be rated once");
-    }
-
-    evaluator.rate(evaluated, rating);
+    } else if (
+      ![StatusEnum.FINISHED, StatusEnum.RATED].includes(this.currentLog.status)
+    ) {
+      throw new Error("The request cannot be rated on current stage");
+    } else evaluator.rate(evaluated, rating);
 
     this.saveLog(StatusEnum.RATED, evaluator);
   }
