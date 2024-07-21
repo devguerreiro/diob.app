@@ -71,7 +71,7 @@ export default class ServiceRequest {
 
   schedule(by: User): void {
     if (by !== this._client) {
-      throw new Error("Only the client can schedule the request");
+      throw new Error("Only the client can schedules the request");
     } else if (this.currentLog.status !== StatusEnum.CREATED) {
       throw new Error("The request cannot be scheduled on current stage");
     }
@@ -81,7 +81,7 @@ export default class ServiceRequest {
 
   reschedule(by: User): void {
     if (by !== this._client) {
-      throw new Error("Only the client can reschedule the request");
+      throw new Error("Only the client can reschedules the request");
     } else if (
       ![StatusEnum.SCHEDULED, StatusEnum.RESCHEDULED].includes(
         this.currentLog.status
@@ -95,7 +95,7 @@ export default class ServiceRequest {
 
   cancel(by: User, reason: string): void {
     if (by !== this._client) {
-      throw new Error("Only the client can cancel the request");
+      throw new Error("Only the client can cancels the request");
     } else if (
       this.logs.some(
         (log) => log.status === StatusEnum.CANCELLED && log.by === by
@@ -117,15 +117,13 @@ export default class ServiceRequest {
 
   confirm(by: User): void {
     if (by !== this._provider) {
-      throw new Error("Only the provider can confirm the request");
+      throw new Error("Only the provider can confirms the request");
     } else if (
       ![StatusEnum.SCHEDULED, StatusEnum.RESCHEDULED].includes(
         this.currentLog.status
       )
     ) {
-      throw new Error(
-        "The request can only be confirmed on SCHEDULED/RESCHEDULED stages"
-      );
+      throw new Error("The request cannot be confirmed on current stage");
     }
 
     this.saveLog(StatusEnum.CONFIRMED, by);
@@ -133,15 +131,13 @@ export default class ServiceRequest {
 
   refuse(by: User): void {
     if (by !== this._provider) {
-      throw new Error("Only the provider can refuse the request");
+      throw new Error("Only the provider can refuses the request");
     } else if (
       ![StatusEnum.SCHEDULED, StatusEnum.RESCHEDULED].includes(
         this.currentLog.status
       )
     ) {
-      throw new Error(
-        "The request can only be refused on SCHEDULED/RESCHEDULED stages"
-      );
+      throw new Error("The request cannot be refused on current stage");
     }
 
     this.saveLog(StatusEnum.REFUSED, by);
@@ -149,7 +145,7 @@ export default class ServiceRequest {
 
   start(by: User): void {
     if (by !== this._provider) {
-      throw new Error("Only the provider can start the request");
+      throw new Error("Only the provider can starts the request");
     } else if (this.currentLog.status !== StatusEnum.CONFIRMED) {
       throw new Error("The request cannot be started on current stage");
     } else if (new Date() < this.when) {

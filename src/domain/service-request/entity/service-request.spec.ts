@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import ServiceRequest, { StatusEnum } from "./service-request";
 import { makeFakeServiceRequest } from "./service-request.spec.fixture";
 
-const makeServiceRequestReadyToBegin = () => {
+const makeServiceRequestReadyToStart = () => {
   const now = new Date();
   jest.spyOn(ServiceRequest.prototype, "when", "get").mockReturnValue(now);
   jest.useFakeTimers().setSystemTime(now);
@@ -22,17 +22,9 @@ describe("ServiceRequest Entity", () => {
     expect(newServiceRequest.currentLog.at).toBeDefined();
   });
 
-  // it("should calculate the total amount of the scheduled request", () => {
-  //   const newServiceRequest = makeFakeServiceRequest();
-
-  //   expect(newServiceRequest.totalCost).toEqual(
-  //     newServiceRequest.work.totalCost
-  //   );
-  // });
-
   // SCHEDULING
 
-  it("should be able to the client schedule the request", () => {
+  it("should be able to the client schedules the request", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
     newServiceRequest.schedule(newServiceRequest.client);
@@ -48,7 +40,7 @@ describe("ServiceRequest Entity", () => {
 
     expect(() => {
       newServiceRequest.schedule(newServiceRequest.provider);
-    }).toThrow("Only the client can schedule the request");
+    }).toThrow("Only the client can schedules the request");
   });
 
   it.each([StatusEnum.CREATED])(
@@ -103,7 +95,7 @@ describe("ServiceRequest Entity", () => {
 
   // RESCHEDULING
 
-  it("should be able to the client reschedule the request", () => {
+  it("should be able to the client reschedules the request", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
     newServiceRequest.schedule(newServiceRequest.client);
@@ -123,7 +115,7 @@ describe("ServiceRequest Entity", () => {
 
     expect(() => {
       newServiceRequest.reschedule(newServiceRequest.provider);
-    }).toThrow("Only the client can reschedule the request");
+    }).toThrow("Only the client can reschedules the request");
   });
 
   it.each([StatusEnum.SCHEDULED, StatusEnum.RESCHEDULED])(
@@ -177,7 +169,7 @@ describe("ServiceRequest Entity", () => {
 
   // CANCELLING
 
-  it("should be able to the client cancel the request", () => {
+  it("should be able to the client cancels the request", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
     newServiceRequest.schedule(newServiceRequest.client);
@@ -191,18 +183,18 @@ describe("ServiceRequest Entity", () => {
     expect(newServiceRequest.currentLog.reason).toEqual("foo");
   });
 
-  it("should not be able to the provider cancel the request", () => {
+  it("should not be able to cancel the request if not the client", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
     newServiceRequest.schedule(newServiceRequest.client);
 
     expect(() => {
       newServiceRequest.cancel(newServiceRequest.provider, "foo");
-    }).toThrow("Only the client can cancel the request");
+    }).toThrow("Only the client can cancels the request");
   });
 
-  it.each([StatusEnum.SCHEDULED, StatusEnum.RESCHEDULED])(
-    "should be able to the client cancel the request on stages",
+  it.each([StatusEnum.SCHEDULED, StatusEnum.RESCHEDULED, StatusEnum.CONFIRMED])(
+    "should be able to the client cancels the request on stages",
     (status: StatusEnum) => {
       const newServiceRequest = makeFakeServiceRequest();
 
@@ -232,7 +224,7 @@ describe("ServiceRequest Entity", () => {
     StatusEnum.FINISHED,
     StatusEnum.RATED,
   ])(
-    "should not be able to the client cancel the request on stages",
+    "should not be able to the client cancels the request on stages",
     (status: StatusEnum) => {
       const newServiceRequest = makeFakeServiceRequest();
 
@@ -249,7 +241,7 @@ describe("ServiceRequest Entity", () => {
     }
   );
 
-  it("should not be able to the client cancel twice", () => {
+  it("should not be able to the client cancels the request twice", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
     jest.spyOn(ServiceRequest.prototype, "logs", "get").mockReturnValue([
@@ -264,7 +256,155 @@ describe("ServiceRequest Entity", () => {
     }).toThrow("The request can only be canceled once");
   });
 
-  // BEGINNING
+  // CONFIRMING
+
+  it("should be able to the provider confirms the request", () => {
+    const newServiceRequest = makeFakeServiceRequest();
+
+    newServiceRequest.schedule(newServiceRequest.client);
+
+    newServiceRequest.confirm(newServiceRequest.provider);
+
+    expect(newServiceRequest.logs.length).toEqual(3);
+    expect(newServiceRequest.currentLog.status).toBe(StatusEnum.CONFIRMED);
+    expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.provider);
+    expect(newServiceRequest.currentLog.at).toBeDefined();
+  });
+
+  it("should not be able to client confirms the request if not the provider", () => {
+    const newServiceRequest = makeFakeServiceRequest();
+
+    newServiceRequest.schedule(newServiceRequest.client);
+
+    expect(() => {
+      newServiceRequest.confirm(newServiceRequest.client);
+    }).toThrow("Only the provider can confirms the request");
+  });
+
+  it.each([StatusEnum.SCHEDULED, StatusEnum.RESCHEDULED])(
+    "should be able to the provider confirms the request on stages",
+    (status: StatusEnum) => {
+      const newServiceRequest = makeFakeServiceRequest();
+
+      jest
+        .spyOn(ServiceRequest.prototype, "currentLog", "get")
+        .mockReturnValue({
+          ...newServiceRequest.currentLog,
+          status,
+        });
+
+      newServiceRequest.confirm(newServiceRequest.provider);
+
+      jest.restoreAllMocks();
+
+      expect(newServiceRequest.logs.length).toEqual(2);
+      expect(newServiceRequest.currentLog.status).toBe(StatusEnum.CONFIRMED);
+      expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.provider);
+      expect(newServiceRequest.currentLog.at).toBeDefined();
+    }
+  );
+
+  it.each([
+    StatusEnum.CREATED,
+    StatusEnum.CANCELLED,
+    StatusEnum.CONFIRMED,
+    StatusEnum.REFUSED,
+    StatusEnum.STARTED,
+    StatusEnum.FINISHED,
+    StatusEnum.RATED,
+  ])(
+    "should not be able to the provider confirms the request on stages",
+    (status: StatusEnum) => {
+      const newServiceRequest = makeFakeServiceRequest();
+
+      jest
+        .spyOn(ServiceRequest.prototype, "currentLog", "get")
+        .mockReturnValue({
+          ...newServiceRequest.currentLog,
+          status,
+        });
+
+      expect(() => {
+        newServiceRequest.confirm(newServiceRequest.provider);
+      }).toThrow("The request cannot be confirmed on current stage");
+    }
+  );
+
+  // REFUSING
+
+  it("should be able to the provider refuses the request", () => {
+    const newServiceRequest = makeFakeServiceRequest();
+
+    newServiceRequest.schedule(newServiceRequest.client);
+
+    newServiceRequest.refuse(newServiceRequest.provider);
+
+    expect(newServiceRequest.logs.length).toEqual(3);
+    expect(newServiceRequest.currentLog.status).toBe(StatusEnum.REFUSED);
+    expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.provider);
+    expect(newServiceRequest.currentLog.at).toBeDefined();
+  });
+
+  it("should not be able to client refuses the request if not the provider", () => {
+    const newServiceRequest = makeFakeServiceRequest();
+
+    newServiceRequest.schedule(newServiceRequest.client);
+
+    expect(() => {
+      newServiceRequest.refuse(newServiceRequest.client);
+    }).toThrow("Only the provider can refuses the request");
+  });
+
+  it.each([StatusEnum.SCHEDULED, StatusEnum.RESCHEDULED])(
+    "should be able to the provider refuses the request on stages",
+    (status: StatusEnum) => {
+      const newServiceRequest = makeFakeServiceRequest();
+
+      jest
+        .spyOn(ServiceRequest.prototype, "currentLog", "get")
+        .mockReturnValue({
+          ...newServiceRequest.currentLog,
+          status,
+        });
+
+      newServiceRequest.refuse(newServiceRequest.provider);
+
+      jest.restoreAllMocks();
+
+      expect(newServiceRequest.logs.length).toEqual(2);
+      expect(newServiceRequest.currentLog.status).toBe(StatusEnum.REFUSED);
+      expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.provider);
+      expect(newServiceRequest.currentLog.at).toBeDefined();
+    }
+  );
+
+  it.each([
+    StatusEnum.CREATED,
+    StatusEnum.CANCELLED,
+    StatusEnum.CONFIRMED,
+    StatusEnum.REFUSED,
+    StatusEnum.STARTED,
+    StatusEnum.FINISHED,
+    StatusEnum.RATED,
+  ])(
+    "should not be able to the provider refuses the request on stages",
+    (status: StatusEnum) => {
+      const newServiceRequest = makeFakeServiceRequest();
+
+      jest
+        .spyOn(ServiceRequest.prototype, "currentLog", "get")
+        .mockReturnValue({
+          ...newServiceRequest.currentLog,
+          status,
+        });
+
+      expect(() => {
+        newServiceRequest.refuse(newServiceRequest.provider);
+      }).toThrow("The request cannot be refused on current stage");
+    }
+  );
+
+  // STARTING
 
   it("should be able to the provider starts the request", () => {
     const newServiceRequest = makeFakeServiceRequest();
@@ -273,7 +413,7 @@ describe("ServiceRequest Entity", () => {
 
     newServiceRequest.confirm(newServiceRequest.provider);
 
-    makeServiceRequestReadyToBegin();
+    makeServiceRequestReadyToStart();
 
     newServiceRequest.start(newServiceRequest.provider);
 
@@ -290,8 +430,31 @@ describe("ServiceRequest Entity", () => {
 
     expect(() => {
       newServiceRequest.start(newServiceRequest.client);
-    }).toThrow("Only the provider can start the request");
+    }).toThrow("Only the provider can starts the request");
   });
+
+  it.each([StatusEnum.CONFIRMED])(
+    "should be able to the provider starts the request on stages",
+    (status: StatusEnum) => {
+      const newServiceRequest = makeFakeServiceRequest();
+
+      jest
+        .spyOn(ServiceRequest.prototype, "currentLog", "get")
+        .mockReturnValue({
+          ...newServiceRequest.currentLog,
+          status,
+        });
+
+      newServiceRequest.start(newServiceRequest.provider);
+
+      jest.restoreAllMocks();
+
+      expect(newServiceRequest.logs.length).toEqual(2);
+      expect(newServiceRequest.currentLog.status).toBe(StatusEnum.STARTED);
+      expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.provider);
+      expect(newServiceRequest.currentLog.at).toBeDefined();
+    }
+  );
 
   it.each([
     StatusEnum.CREATED,
@@ -320,7 +483,7 @@ describe("ServiceRequest Entity", () => {
     }
   );
 
-  it("should not be able to the provider start the request before the scheduled date and time", () => {
+  it("should not be able to the provider starts the request before the scheduled date and time", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
     newServiceRequest.schedule(newServiceRequest.client);
@@ -342,14 +505,14 @@ describe("ServiceRequest Entity", () => {
 
   // FINISHING
 
-  it("should be able to the provider finish the request", () => {
+  it("should be able to the provider finishes the request", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
     newServiceRequest.schedule(newServiceRequest.client);
 
     newServiceRequest.confirm(newServiceRequest.provider);
 
-    makeServiceRequestReadyToBegin();
+    makeServiceRequestReadyToStart();
 
     newServiceRequest.start(newServiceRequest.provider);
 
@@ -361,14 +524,14 @@ describe("ServiceRequest Entity", () => {
     expect(newServiceRequest.currentLog.at).toBeDefined();
   });
 
-  it("should be able to the client finish the request", () => {
+  it("should be able to the client finishes the request", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
     newServiceRequest.schedule(newServiceRequest.client);
 
     newServiceRequest.confirm(newServiceRequest.provider);
 
-    makeServiceRequestReadyToBegin();
+    makeServiceRequestReadyToStart();
 
     newServiceRequest.start(newServiceRequest.provider);
 
@@ -380,6 +543,52 @@ describe("ServiceRequest Entity", () => {
     expect(newServiceRequest.currentLog.at).toBeDefined();
   });
 
+  it.each([StatusEnum.STARTED, StatusEnum.FINISHED])(
+    "should be able to the client finishes the request on stages",
+    (status: StatusEnum) => {
+      const newServiceRequest = makeFakeServiceRequest();
+
+      jest
+        .spyOn(ServiceRequest.prototype, "currentLog", "get")
+        .mockReturnValue({
+          ...newServiceRequest.currentLog,
+          status,
+        });
+
+      newServiceRequest.finish(newServiceRequest.client);
+
+      jest.restoreAllMocks();
+
+      expect(newServiceRequest.logs.length).toEqual(2);
+      expect(newServiceRequest.currentLog.status).toBe(StatusEnum.FINISHED);
+      expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.client);
+      expect(newServiceRequest.currentLog.at).toBeDefined();
+    }
+  );
+
+  it.each([StatusEnum.STARTED, StatusEnum.FINISHED])(
+    "should be able to the provider finishes the request on stages",
+    (status: StatusEnum) => {
+      const newServiceRequest = makeFakeServiceRequest();
+
+      jest
+        .spyOn(ServiceRequest.prototype, "currentLog", "get")
+        .mockReturnValue({
+          ...newServiceRequest.currentLog,
+          status,
+        });
+
+      newServiceRequest.finish(newServiceRequest.provider);
+
+      jest.restoreAllMocks();
+
+      expect(newServiceRequest.logs.length).toEqual(2);
+      expect(newServiceRequest.currentLog.status).toBe(StatusEnum.FINISHED);
+      expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.provider);
+      expect(newServiceRequest.currentLog.at).toBeDefined();
+    }
+  );
+
   it.each([
     StatusEnum.CREATED,
     StatusEnum.SCHEDULED,
@@ -389,7 +598,7 @@ describe("ServiceRequest Entity", () => {
     StatusEnum.REFUSED,
     StatusEnum.RATED,
   ])(
-    "should not be able to the client finish the request on stages",
+    "should not be able to the client finishes the request on stages",
     (status: StatusEnum) => {
       const newServiceRequest = makeFakeServiceRequest();
 
@@ -406,7 +615,33 @@ describe("ServiceRequest Entity", () => {
     }
   );
 
-  it("should not be able to the client finish the request twice", () => {
+  it.each([
+    StatusEnum.CREATED,
+    StatusEnum.SCHEDULED,
+    StatusEnum.RESCHEDULED,
+    StatusEnum.CANCELLED,
+    StatusEnum.CONFIRMED,
+    StatusEnum.REFUSED,
+    StatusEnum.RATED,
+  ])(
+    "should not be able to the provider finishes the request on stages",
+    (status: StatusEnum) => {
+      const newServiceRequest = makeFakeServiceRequest();
+
+      jest
+        .spyOn(ServiceRequest.prototype, "currentLog", "get")
+        .mockReturnValue({
+          ...newServiceRequest.currentLog,
+          status,
+        });
+
+      expect(() => {
+        newServiceRequest.finish(newServiceRequest.provider);
+      }).toThrow("The request cannot be finished on current stage");
+    }
+  );
+
+  it("should not be able to the client finishes the request twice", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
     newServiceRequest.schedule(newServiceRequest.client);
@@ -422,7 +657,7 @@ describe("ServiceRequest Entity", () => {
     }).toThrow("The request can only be finished once");
   });
 
-  it("should not be able to the provider finish the request twice", () => {
+  it("should not be able to the provider finishes the request twice", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
     newServiceRequest.schedule(newServiceRequest.client);
@@ -440,12 +675,12 @@ describe("ServiceRequest Entity", () => {
 
   // RATING
 
-  it("should be able to the client rate the request provider", () => {
+  it("should be able to the client rates the request provider", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
     newServiceRequest.schedule(newServiceRequest.client);
 
-    makeServiceRequestReadyToBegin();
+    makeServiceRequestReadyToStart();
 
     newServiceRequest.confirm(newServiceRequest.provider);
 
@@ -468,12 +703,12 @@ describe("ServiceRequest Entity", () => {
     expect(spiedMethod).toHaveBeenCalledWith(newServiceRequest.provider, 5);
   });
 
-  it("should be able to the provider rate the request client", () => {
+  it("should be able to the provider rates the request client", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
     newServiceRequest.schedule(newServiceRequest.client);
 
-    makeServiceRequestReadyToBegin();
+    makeServiceRequestReadyToStart();
 
     newServiceRequest.confirm(newServiceRequest.provider);
 
@@ -496,6 +731,60 @@ describe("ServiceRequest Entity", () => {
     expect(spiedMethod).toHaveBeenCalledWith(newServiceRequest.client, 5);
   });
 
+  it.each([StatusEnum.FINISHED, StatusEnum.RATED])(
+    "should be able to the client rates the request provider on stages",
+    (status: StatusEnum) => {
+      const newServiceRequest = makeFakeServiceRequest();
+
+      jest
+        .spyOn(ServiceRequest.prototype, "currentLog", "get")
+        .mockReturnValue({
+          ...newServiceRequest.currentLog,
+          status,
+        });
+
+      newServiceRequest.rate(
+        newServiceRequest.client,
+        newServiceRequest.provider,
+        5
+      );
+
+      jest.restoreAllMocks();
+
+      expect(newServiceRequest.logs.length).toEqual(2);
+      expect(newServiceRequest.currentLog.status).toBe(StatusEnum.RATED);
+      expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.client);
+      expect(newServiceRequest.currentLog.at).toBeDefined();
+    }
+  );
+
+  it.each([StatusEnum.FINISHED, StatusEnum.RATED])(
+    "should be able to the provider rates the request client on stages",
+    (status: StatusEnum) => {
+      const newServiceRequest = makeFakeServiceRequest();
+
+      jest
+        .spyOn(ServiceRequest.prototype, "currentLog", "get")
+        .mockReturnValue({
+          ...newServiceRequest.currentLog,
+          status,
+        });
+
+      newServiceRequest.rate(
+        newServiceRequest.provider,
+        newServiceRequest.client,
+        5
+      );
+
+      jest.restoreAllMocks();
+
+      expect(newServiceRequest.logs.length).toEqual(2);
+      expect(newServiceRequest.currentLog.status).toBe(StatusEnum.RATED);
+      expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.provider);
+      expect(newServiceRequest.currentLog.at).toBeDefined();
+    }
+  );
+
   it.each([
     StatusEnum.CREATED,
     StatusEnum.SCHEDULED,
@@ -505,7 +794,7 @@ describe("ServiceRequest Entity", () => {
     StatusEnum.REFUSED,
     StatusEnum.STARTED,
   ])(
-    "should not be able to the client rate the request provider on stages",
+    "should not be able to the client rates the request provider on stages",
     (status: StatusEnum) => {
       const newServiceRequest = makeFakeServiceRequest();
 
@@ -526,7 +815,37 @@ describe("ServiceRequest Entity", () => {
     }
   );
 
-  it("should not be able to the client rate twice", () => {
+  it.each([
+    StatusEnum.CREATED,
+    StatusEnum.SCHEDULED,
+    StatusEnum.RESCHEDULED,
+    StatusEnum.CANCELLED,
+    StatusEnum.CONFIRMED,
+    StatusEnum.REFUSED,
+    StatusEnum.STARTED,
+  ])(
+    "should not be able to the provider rates the request client on stages",
+    (status: StatusEnum) => {
+      const newServiceRequest = makeFakeServiceRequest();
+
+      jest
+        .spyOn(ServiceRequest.prototype, "currentLog", "get")
+        .mockReturnValue({
+          ...newServiceRequest.currentLog,
+          status,
+        });
+
+      expect(() => {
+        newServiceRequest.rate(
+          newServiceRequest.provider,
+          newServiceRequest.client,
+          5
+        );
+      }).toThrow("The request cannot be rated on current stage");
+    }
+  );
+
+  it("should not be able to the client rates twice", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
     jest.spyOn(ServiceRequest.prototype, "logs", "get").mockReturnValue([
@@ -546,37 +865,7 @@ describe("ServiceRequest Entity", () => {
     }).toThrow("The request can only be rated once");
   });
 
-  it.each([
-    StatusEnum.CREATED,
-    StatusEnum.SCHEDULED,
-    StatusEnum.RESCHEDULED,
-    StatusEnum.CANCELLED,
-    StatusEnum.CONFIRMED,
-    StatusEnum.REFUSED,
-    StatusEnum.STARTED,
-  ])(
-    "should not be able to the provider rate the request client on stages",
-    (status: StatusEnum) => {
-      const newServiceRequest = makeFakeServiceRequest();
-
-      jest
-        .spyOn(ServiceRequest.prototype, "currentLog", "get")
-        .mockReturnValue({
-          ...newServiceRequest.currentLog,
-          status,
-        });
-
-      expect(() => {
-        newServiceRequest.rate(
-          newServiceRequest.provider,
-          newServiceRequest.client,
-          5
-        );
-      }).toThrow("The request cannot be rated on current stage");
-    }
-  );
-
-  it("should not be able to the provider rate twice", () => {
+  it("should not be able to the provider rates twice", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
     jest.spyOn(ServiceRequest.prototype, "logs", "get").mockReturnValue([
