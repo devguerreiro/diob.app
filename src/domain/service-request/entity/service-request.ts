@@ -28,9 +28,7 @@ export default class ServiceRequest {
     private _client: Client,
     private _provider: Provider,
     private _scheduled_at: Date
-  ) {
-    this.initialize();
-  }
+  ) {}
 
   get id(): string {
     return this._id;
@@ -49,15 +47,11 @@ export default class ServiceRequest {
   }
 
   get currentLog(): Log {
-    return this._logs[this._logs.length - 1];
+    return this.logs[this.logs.length - 1];
   }
 
   get when(): Date {
     return this._scheduled_at;
-  }
-
-  private initialize(): void {
-    this.saveLog(StatusEnum.CREATED, this._client);
   }
 
   private saveLog(status: StatusEnum, user: User, reason?: string): void {
@@ -69,9 +63,19 @@ export default class ServiceRequest {
     });
   }
 
+  create(by: User): void {
+    if (by !== this._client) {
+      throw new Error("Only the client can create the request");
+    } else if (this.logs.length > 0) {
+      throw new Error("The request cannot be created on current stage");
+    }
+
+    this.saveLog(StatusEnum.CREATED, this._client);
+  }
+
   schedule(by: User): void {
     if (by !== this._client) {
-      throw new Error("Only the client can schedules the request");
+      throw new Error("Only the client can schedule the request");
     } else if (this.currentLog.status !== StatusEnum.CREATED) {
       throw new Error("The request cannot be scheduled on current stage");
     }
@@ -81,7 +85,7 @@ export default class ServiceRequest {
 
   reschedule(by: User): void {
     if (by !== this._client) {
-      throw new Error("Only the client can reschedules the request");
+      throw new Error("Only the client can reschedule the request");
     } else if (
       ![StatusEnum.SCHEDULED, StatusEnum.RESCHEDULED].includes(
         this.currentLog.status
@@ -95,7 +99,7 @@ export default class ServiceRequest {
 
   cancel(by: User, reason: string): void {
     if (by !== this._client) {
-      throw new Error("Only the client can cancels the request");
+      throw new Error("Only the client can cancel the request");
     } else if (
       this.logs.some(
         (log) => log.status === StatusEnum.CANCELLED && log.by === by
@@ -117,7 +121,7 @@ export default class ServiceRequest {
 
   confirm(by: User): void {
     if (by !== this._provider) {
-      throw new Error("Only the provider can confirms the request");
+      throw new Error("Only the provider can confirm the request");
     } else if (
       ![StatusEnum.SCHEDULED, StatusEnum.RESCHEDULED].includes(
         this.currentLog.status
@@ -131,7 +135,7 @@ export default class ServiceRequest {
 
   refuse(by: User): void {
     if (by !== this._provider) {
-      throw new Error("Only the provider can refuses the request");
+      throw new Error("Only the provider can refuse the request");
     } else if (
       ![StatusEnum.SCHEDULED, StatusEnum.RESCHEDULED].includes(
         this.currentLog.status
@@ -145,7 +149,7 @@ export default class ServiceRequest {
 
   start(by: User): void {
     if (by !== this._provider) {
-      throw new Error("Only the provider can starts the request");
+      throw new Error("Only the provider can start the request");
     } else if (this.currentLog.status !== StatusEnum.CONFIRMED) {
       throw new Error("The request cannot be started on current stage");
     } else if (new Date() < this.when) {
@@ -159,7 +163,7 @@ export default class ServiceRequest {
 
   finish(by: User): void {
     if (
-      this._logs.some(
+      this.logs.some(
         (log) => log.status === StatusEnum.FINISHED && log.by === by
       )
     ) {
