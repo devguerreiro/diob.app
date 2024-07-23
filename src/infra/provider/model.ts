@@ -34,6 +34,7 @@ export type ProviderCreateModel = Prisma.ProviderModelGetPayload<{
           select: {
             cost: true;
             job_id: true;
+            estimated_duration: true;
           };
         };
       };
@@ -44,10 +45,8 @@ export type ProviderCreateModel = Prisma.ProviderModelGetPayload<{
 export type ProviderUpdateModel = Prisma.ProviderModelGetPayload<{
   select: {
     name: true;
-    document: true;
     email: true;
     contact: true;
-    dob: true;
   };
 }>;
 
@@ -60,5 +59,6 @@ export type ProviderWorkUpdateModel = Prisma.ProviderWorkModelGetPayload<{
 export type ProviderWorkJobUpdateModel = Prisma.ProviderWorkJobModelGetPayload<{
   select: {
     cost: true;
+    estimated_duration: true;
   };
 }>;

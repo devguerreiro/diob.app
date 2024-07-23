@@ -28,6 +28,7 @@ describe("Provider Repository tests", () => {
         jobs: work.jobs.map((job) => ({
           job_id: job.workJob.id,
           cost: job.cost,
+          estimated_duration: job.estimatedDuration,
         })),
       })),
     };
@@ -80,6 +81,7 @@ describe("Provider Repository tests", () => {
                 create: work.jobs.map((job) => ({
                   job_id: job.job_id,
                   cost: job.cost,
+                  estimated_duration: job.estimated_duration,
                 })),
               },
             })),
@@ -245,10 +247,8 @@ describe("Provider Repository tests", () => {
 
     const data: ProviderUpdateModel = {
       name: provider.name,
-      document: provider.document.value,
       email: provider.email.value,
       contact: provider.contact.value,
-      dob: provider.dob,
     };
 
     const updatedProvider: ProviderReadModel = {
@@ -435,9 +435,7 @@ describe("Provider Repository tests", () => {
         works: {
           update: {
             where: { id: provider.works[0].id },
-            data: {
-              min_cost: 99,
-            },
+            data,
           },
         },
       },
@@ -536,6 +534,7 @@ it("should be able to update a provider work job on database", async () => {
 
   const data: ProviderWorkJobUpdateModel = {
     cost: 99,
+    estimated_duration: 240,
   };
 
   const updatedProvider: ProviderReadModel = {
@@ -589,9 +588,7 @@ it("should be able to update a provider work job on database", async () => {
             jobs: {
               update: {
                 where: { id: provider.works[0].jobs[0].id },
-                data: {
-                  cost: 99,
-                },
+                data,
               },
             },
           },

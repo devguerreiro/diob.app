@@ -31,6 +31,7 @@ export default class ProviderRepository
                 create: work.jobs.map((job) => ({
                   job_id: job.job_id,
                   cost: job.cost,
+                  estimated_duration: job.estimated_duration,
                 })),
               },
             })),
@@ -95,9 +96,7 @@ export default class ProviderRepository
         works: {
           update: {
             where: { id: workId },
-            data: {
-              min_cost: data.min_cost,
-            },
+            data,
           },
         },
       },
@@ -146,9 +145,7 @@ export default class ProviderRepository
               jobs: {
                 update: {
                   where: { id: workJobId },
-                  data: {
-                    cost: data.cost,
-                  },
+                  data,
                 },
               },
             },
