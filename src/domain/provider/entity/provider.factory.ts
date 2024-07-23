@@ -9,6 +9,7 @@ import {
 import { ProviderReadModel } from "@/infra/provider/model";
 
 import Provider, { ProviderWork, ProviderWorkJob } from "./provider";
+import { Work, WorkJob } from "@/domain/work/work";
 
 export default class ProviderFactory
   implements FactoryInterface<ProviderReadModel, Provider>
@@ -26,9 +27,24 @@ export default class ProviderFactory
       model.dob,
       model.works.map((work) => {
         const jobs = work.jobs.map(
-          (job) => new ProviderWorkJob(job.id, job.job.name, job.cost)
+          (job) =>
+            new ProviderWorkJob(
+              job.id,
+              job.cost,
+              job.estimated_duration,
+              new WorkJob(job.job.id, job.job.name)
+            )
         );
-        return new ProviderWork(work.id, work.work.name, work.min_cost, jobs);
+        return new ProviderWork(
+          work.id,
+          work.min_cost,
+          jobs,
+          new Work(
+            work.work.id,
+            work.work.name,
+            jobs.map((job) => job.workJob)
+          )
+        );
       })
     );
   }

@@ -10,12 +10,18 @@ import {
   makeFakeUserContact,
   makeFakeUserEmail,
 } from "@/domain/@shared/entity/user.spec.fixture";
+import { makeFakeWorkJob, makeFakeWork } from "@/domain/work/work.spec.fixture";
 
 export const makeFakeProviderWorkJob = () =>
-  new ProviderWorkJob(uuidV4(), "Work Job", 50);
+  new ProviderWorkJob(uuidV4(), 50, 60, makeFakeWorkJob());
 
-export const makeFakeProviderWork = () =>
-  new ProviderWork(uuidV4(), "Work", 100, [makeFakeProviderWorkJob()]);
+export const makeFakeProviderWork = () => {
+  const fakeWork = makeFakeWork();
+  const fakeWorkJobs = fakeWork.jobs.map(
+    (job) => new ProviderWorkJob(uuidV4(), 50, 60, job)
+  );
+  return new ProviderWork(uuidV4(), 100, fakeWorkJobs, fakeWork);
+};
 
 export const makeFakeProvider = () =>
   new Provider(
@@ -51,4 +57,4 @@ export const makeFakeProviderWithoutWork = () =>
   );
 
 export const makeFakeProviderWorkWithoutJob = () =>
-  new ProviderWork(uuidV4(), "Provider Work Without Job", 100, []);
+  new ProviderWork(uuidV4(), 100, [], makeFakeWork());

@@ -58,39 +58,9 @@ CREATE TABLE "ProviderWorkJobModel" (
     "provider_work_id" TEXT NOT NULL,
     "job_id" TEXT NOT NULL,
     "cost" DOUBLE PRECISION NOT NULL,
+    "estimated_duration" INTEGER NOT NULL,
 
     CONSTRAINT "ProviderWorkJobModel_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "RequestModel" (
-    "id" TEXT NOT NULL,
-    "client_id" TEXT NOT NULL,
-    "provider_id" TEXT NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-    "total_cost" DOUBLE PRECISION NOT NULL,
-
-    CONSTRAINT "RequestModel_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "RequestProviderWorkModel" (
-    "id" TEXT NOT NULL,
-    "request_id" TEXT NOT NULL,
-    "provider_work_id" TEXT NOT NULL,
-    "total_cost" DOUBLE PRECISION NOT NULL,
-
-    CONSTRAINT "RequestProviderWorkModel_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "RequestProviderWorkJobModel" (
-    "id" TEXT NOT NULL,
-    "request_provider_work_id" TEXT NOT NULL,
-    "provider_work_job_id" TEXT NOT NULL,
-
-    CONSTRAINT "RequestProviderWorkJobModel_pkey" PRIMARY KEY ("id")
 );
 
 -- AddForeignKey
@@ -107,21 +77,3 @@ ALTER TABLE "ProviderWorkJobModel" ADD CONSTRAINT "ProviderWorkJobModel_provider
 
 -- AddForeignKey
 ALTER TABLE "ProviderWorkJobModel" ADD CONSTRAINT "ProviderWorkJobModel_job_id_fkey" FOREIGN KEY ("job_id") REFERENCES "WorkJobModel"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "RequestModel" ADD CONSTRAINT "RequestModel_client_id_fkey" FOREIGN KEY ("client_id") REFERENCES "ClientModel"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "RequestModel" ADD CONSTRAINT "RequestModel_provider_id_fkey" FOREIGN KEY ("provider_id") REFERENCES "ProviderModel"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "RequestProviderWorkModel" ADD CONSTRAINT "RequestProviderWorkModel_request_id_fkey" FOREIGN KEY ("request_id") REFERENCES "RequestModel"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "RequestProviderWorkModel" ADD CONSTRAINT "RequestProviderWorkModel_provider_work_id_fkey" FOREIGN KEY ("provider_work_id") REFERENCES "ProviderWorkModel"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "RequestProviderWorkJobModel" ADD CONSTRAINT "RequestProviderWorkJobModel_request_provider_work_id_fkey" FOREIGN KEY ("request_provider_work_id") REFERENCES "RequestProviderWorkModel"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "RequestProviderWorkJobModel" ADD CONSTRAINT "RequestProviderWorkJobModel_provider_work_job_id_fkey" FOREIGN KEY ("provider_work_job_id") REFERENCES "ProviderWorkJobModel"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -6,6 +6,8 @@ import {
   UserEmail,
 } from "@/domain/@shared/value-object/user";
 
+import { Work, WorkJob } from "@/domain/work/work";
+
 export default class Provider extends User {
   constructor(
     id: string,
@@ -54,9 +56,9 @@ export default class Provider extends User {
 export class ProviderWork {
   constructor(
     private _id: string,
-    private _name: string,
     private _minCost: number,
-    private _jobs: Array<ProviderWorkJob>
+    private _jobs: Array<ProviderWorkJob>,
+    private _work: Work
   ) {
     this.validate();
   }
@@ -66,11 +68,7 @@ export class ProviderWork {
   }
 
   get name(): string {
-    return this._name;
-  }
-
-  get jobs(): Array<ProviderWorkJob> {
-    return this._jobs;
+    return this.work.name;
   }
 
   get minCost(): number {
@@ -80,6 +78,14 @@ export class ProviderWork {
   get totalCost(): number {
     const jobsTotal = this._jobs.reduce((total, job) => total + job.cost, 0);
     return Math.max(jobsTotal, this._minCost);
+  }
+
+  get jobs(): Array<ProviderWorkJob> {
+    return this._jobs;
+  }
+
+  get work(): Work {
+    return this._work;
   }
 
   validate(): void {
@@ -109,8 +115,9 @@ export class ProviderWork {
 export class ProviderWorkJob {
   constructor(
     private _id: string,
-    private _name: string,
-    private _cost: number
+    private _cost: number,
+    private _estimatedDuration: number,
+    private _workJob: WorkJob
   ) {}
 
   get id(): string {
@@ -118,10 +125,18 @@ export class ProviderWorkJob {
   }
 
   get name(): string {
-    return this._name;
+    return this.workJob.name;
   }
 
   get cost(): number {
     return this._cost;
+  }
+
+  get estimatedDuration(): number {
+    return this._estimatedDuration;
+  }
+
+  get workJob(): WorkJob {
+    return this._workJob;
   }
 }

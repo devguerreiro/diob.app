@@ -103,9 +103,9 @@ describe("Provider Entity", () => {
 
     const newWork = new ProviderWork(
       existingWork.id,
-      existingWork.name,
       existingWork.minCost,
-      existingWork.jobs
+      existingWork.jobs,
+      existingWork.work
     );
 
     expect(() => {
@@ -177,8 +177,9 @@ describe("Provider Entity", () => {
 
     const newJobService = new ProviderWorkJob(
       existingWorkJob.id,
-      existingWorkJob.name,
-      existingWorkJob.cost
+      existingWorkJob.cost,
+      existingWorkJob.estimatedDuration,
+      existingWorkJob.workJob
     );
 
     expect(() => {
