@@ -24,6 +24,7 @@ model ClientModel {
   address_cep          String             @db.VarChar(9)
   address_number       Int
   address_complement   String?            @db.VarChar(20)
+  service_requests     ServiceRequestModel[]
 }
 
 // prestador de servicos
@@ -35,6 +36,7 @@ model ProviderModel {
   contact              String             @db.VarChar(25)
   dob                  DateTime
   works                ProviderWorkModel[]
+  service_requests     ServiceRequestModel[]
 }
 
 // trabalhos disponiveis na plataforma
@@ -74,4 +76,13 @@ model ProviderWorkJobModel {
   job                  WorkJobModel       @relation(fields: [job_id], references:[id])
   cost                 Float
   estimated_duration   Int
+}
+
+model ServiceRequestModel {
+  id                   String             @id @default(uuid())
+  client_id            String
+  provider_id          String
+  client               ClientModel        @relation(fields: [client_id], references: [id])
+  provider             ProviderModel      @relation(fields: [provider_id], references: [id])
+  scheduled_at         DateTime
 }

@@ -1,7 +1,5 @@
 import { prisma } from "@/lib/prisma";
 
-import RepositoryInterface from "@/domain/@shared/interface/repository";
-
 import Provider from "@/domain/provider/entity/provider";
 import ProviderFactory from "@/domain/provider/entity/provider.factory";
 
@@ -15,9 +13,7 @@ import {
 
 const factory = new ProviderFactory();
 
-export default class ProviderRepository
-  implements RepositoryInterface<Provider>
-{
+export default class ProviderRepository {
   async create(data: ProviderCreateModel): Promise<Provider> {
     const createdProvider = await prisma.providerModel.create({
       data: {
@@ -47,7 +43,7 @@ export default class ProviderRepository
     const providers = await prisma.providerModel.findMany({
       ...ProviderReadOptions,
     });
-    return providers.map((provider) => factory.fromModel(provider));
+    return providers.map(factory.fromModel);
   }
 
   async getByID(id: string): Promise<Provider | null> {

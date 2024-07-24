@@ -63,6 +63,16 @@ CREATE TABLE "ProviderWorkJobModel" (
     CONSTRAINT "ProviderWorkJobModel_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "ServiceRequestModel" (
+    "id" TEXT NOT NULL,
+    "client_id" TEXT NOT NULL,
+    "provider_id" TEXT NOT NULL,
+    "scheduled_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ServiceRequestModel_pkey" PRIMARY KEY ("id")
+);
+
 -- AddForeignKey
 ALTER TABLE "WorkJobModel" ADD CONSTRAINT "WorkJobModel_work_id_fkey" FOREIGN KEY ("work_id") REFERENCES "WorkModel"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -77,3 +87,9 @@ ALTER TABLE "ProviderWorkJobModel" ADD CONSTRAINT "ProviderWorkJobModel_provider
 
 -- AddForeignKey
 ALTER TABLE "ProviderWorkJobModel" ADD CONSTRAINT "ProviderWorkJobModel_job_id_fkey" FOREIGN KEY ("job_id") REFERENCES "WorkJobModel"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ServiceRequestModel" ADD CONSTRAINT "ServiceRequestModel_client_id_fkey" FOREIGN KEY ("client_id") REFERENCES "ClientModel"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ServiceRequestModel" ADD CONSTRAINT "ServiceRequestModel_provider_id_fkey" FOREIGN KEY ("provider_id") REFERENCES "ProviderModel"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
