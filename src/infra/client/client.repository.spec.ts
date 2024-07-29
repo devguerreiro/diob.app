@@ -1,16 +1,26 @@
-import { ClientModel } from "@prisma/client";
-
 import { mockedPrisma } from "@/lib/mocked-prisma";
 
 import { makeFakeClient } from "@/domain/client/entity/client.spec.fixture";
 
-import ClientRepository from "./repository";
+import ClientRepository from "./client.repository";
 
 describe("Client Repository tests", () => {
   it("should be able to insert a client on database", async () => {
     const client = makeFakeClient();
     const repository = new ClientRepository();
-    const model: ClientModel = {
+
+    const data = {
+      name: client.name,
+      document: client.document.value,
+      email: client.email.value,
+      contact: client.contact.value,
+      dob: client.dob,
+      address_cep: client.address.value.cep,
+      address_number: client.address.value.number,
+      address_complement: client.address.value.complement ?? null,
+    };
+
+    const createdClient = {
       id: client.id,
       name: client.name,
       document: client.document.value,
@@ -22,43 +32,49 @@ describe("Client Repository tests", () => {
       address_complement: client.address.value.complement ?? null,
     };
 
-    mockedPrisma.clientModel.create.mockResolvedValue(model);
+    mockedPrisma.clientModel.create.mockResolvedValue(createdClient);
 
-    const createdClient = await repository.create(model);
+    const returnedClient = await repository.create(data);
 
-    expect(createdClient).toEqual(client);
+    expect(returnedClient).toEqual(createdClient);
     expect(mockedPrisma.clientModel.create).toHaveBeenCalledWith({
-      data: model,
+      data,
     });
   });
 
   it("should be able to retrieve all clients from database", async () => {
     const client = makeFakeClient();
     const repository = new ClientRepository();
-    const models: Array<ClientModel> = Array(5).fill({
+
+    const models = Array(5).fill({
       id: client.id,
       name: client.name,
       document: client.document.value,
       email: client.email.value,
       contact: client.contact.value,
-      dob: client.dob,
-      address_cep: client.address.value.cep,
-      address_number: client.address.value.number,
-      address_complement: client.address.value.complement ?? null,
     });
 
     mockedPrisma.clientModel.findMany.mockResolvedValue(models);
 
     const clients = await repository.all();
 
-    expect(clients).toEqual(Array(5).fill(client));
-    expect(mockedPrisma.clientModel.findMany).toHaveBeenCalled();
+    expect(clients).toEqual(models);
+    expect(mockedPrisma.clientModel.findMany).toHaveBeenCalledWith({
+      select: {
+        id: true,
+        name: true,
+        document: true,
+        email: true,
+        contact: true,
+      },
+    });
   });
 
   it("should be able to retrieve a client by id from database", async () => {
     const client = makeFakeClient();
     const repository = new ClientRepository();
-    const model: ClientModel = {
+
+    const model = {
       id: client.id,
       name: client.name,
       document: client.document.value,
@@ -74,7 +90,7 @@ describe("Client Repository tests", () => {
 
     const retrievedClient = await repository.getByID(client.id);
 
-    expect(retrievedClient).toEqual(client);
+    expect(retrievedClient).toEqual(model);
     expect(mockedPrisma.clientModel.findUnique).toHaveBeenCalledWith({
       where: { id: client.id },
     });
@@ -96,26 +112,36 @@ describe("Client Repository tests", () => {
   it("should be able to update a client on database", async () => {
     const client = makeFakeClient();
     const repository = new ClientRepository();
-    const model: ClientModel = {
-      id: client.id,
-      name: client.name,
-      document: client.document.value,
-      email: client.email.value,
-      contact: client.contact.value,
-      dob: client.dob,
-      address_cep: client.address.value.cep,
-      address_number: client.address.value.number,
-      address_complement: client.address.value.complement ?? null,
+
+    const data = {
+      name: "New Name",
+      email: "new@email.com",
+      contact: "123456789",
+      address_cep: "123456",
+      address_number: 123,
+      address_complement: null,
     };
 
-    mockedPrisma.clientModel.update.mockResolvedValue(model);
+    const updatedModel = {
+      id: client.id,
+      name: "New Name",
+      document: client.document.value,
+      email: "new@email.com",
+      contact: "123456789",
+      dob: client.dob,
+      address_cep: "123456",
+      address_number: 123,
+      address_complement: null,
+    };
 
-    const updatedClient = await repository.update(client.id, model);
+    mockedPrisma.clientModel.update.mockResolvedValue(updatedModel);
 
-    expect(updatedClient).toEqual(client);
+    const returnedClient = await repository.update(client.id, data);
+
+    expect(returnedClient).toEqual(updatedModel);
     expect(mockedPrisma.clientModel.update).toHaveBeenCalledWith({
       where: { id: client.id },
-      data: model,
+      data,
     });
   });
 

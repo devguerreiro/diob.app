@@ -1,10 +1,10 @@
 {
-    "conventionalCommits.scopes": [
-        "client",
-        "provider",
-        "job request",
-        "scheduled request",
-        "request",
-        "user"
-    ]
+  "conventionalCommits.scopes": [
+    "client",
+    "provider",
+    "job request",
+    "scheduled request",
+    "request",
+    "user"
+  ]
 }
