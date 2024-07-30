@@ -13,14 +13,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// cliente
-model ClientModel {
+
+// usuario
+model UserModel {
   id                   String             @id @default(uuid())
   name                 String             @db.VarChar(150)
-  document             String             @db.VarChar(14)
+  document             String             @db.VarChar(11) @unique
   email                String             @db.VarChar(50)
   contact              String             @db.VarChar(25)
   dob                  DateTime
+  logs                 LogModel[]
+  provider             ProviderModel?
+  client               ClientModel?
+}
+
+// cliente
+model ClientModel {
+  id                   String             @id @default(uuid())
+  user_id              String             @unique
+  user                 UserModel          @relation(fields: [user_id], references: [id])
   address_cep          String             @db.VarChar(9)
   address_number       Int
   address_complement   String?            @db.VarChar(20)
@@ -30,11 +41,8 @@ model ClientModel {
 // prestador de servicos
 model ProviderModel {
   id                   String             @id @default(uuid())
-  name                 String             @db.VarChar(150)
-  document             String             @db.VarChar(14)
-  email                String             @db.VarChar(50)
-  contact              String             @db.VarChar(25)
-  dob                  DateTime
+  user_id              String             @unique
+  user                 UserModel          @relation(fields: [user_id], references: [id])
   works                ProviderWorkModel[]
   service_requests     ServiceRequestModel[]
 }
@@ -65,6 +73,7 @@ model ProviderWorkModel {
   provider             ProviderModel      @relation(fields: [provider_id], references: [id])
   jobs                 ProviderWorkJobModel[]
   min_cost             Float
+  service_requests     ServiceRequestWorkModel[]
 }
 
 // servicos que o prestador de servicos executa em um trabalho
@@ -73,9 +82,21 @@ model ProviderWorkJobModel {
   provider_work_id     String
   job_id               String
   provider_work        ProviderWorkModel  @relation(fields: [provider_work_id], references: [id])
-  job                  WorkJobModel       @relation(fields: [job_id], references:[id])
+  job                  WorkJobModel       @relation(fields: [job_id], references: [id])
   cost                 Float
   estimated_duration   Int
+  service_requests     ServiceRequestWorkJobModel[]
+}
+
+model LogModel {
+  id                   String             @id @default(uuid())
+  status               String
+  by_id                String
+  by                   UserModel          @relation(fields: [by_id], references: [id])
+  at                   DateTime
+  reason               String?
+  service_request_id   String
+  service_request      ServiceRequestModel @relation(fields: [service_request_id], references: [id])
 }
 
 model ServiceRequestModel {
@@ -84,5 +105,28 @@ model ServiceRequestModel {
   provider_id          String
   client               ClientModel        @relation(fields: [client_id], references: [id])
   provider             ProviderModel      @relation(fields: [provider_id], references: [id])
+  cost                 Float
+  estimated_duration   Float
+  created_at           DateTime
+  updated_at           DateTime
   scheduled_at         DateTime
+  logs                 LogModel[]
+  works                ServiceRequestWorkModel[]
+}
+
+model ServiceRequestWorkModel {
+  id                   String             @id @default(uuid())
+  provider_work_id     String
+  provider_work        ProviderWorkModel  @relation(fields: [provider_work_id], references: [id])
+  jobs                 ServiceRequestWorkJobModel[]
+  service_request_id   String
+  service_request      ServiceRequestModel @relation(fields: [service_request_id], references:[id])
+}
+
+model ServiceRequestWorkJobModel {
+  id                   String             @id @default(uuid())
+  provider_work_job_id String
+  provider_work_job    ProviderWorkJobModel  @relation(fields: [provider_work_job_id], references: [id])
+  service_request_id   String
+  service_request      ServiceRequestWorkModel @relation(fields: [service_request_id], references: [id])
 }
