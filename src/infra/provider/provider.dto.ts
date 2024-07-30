@@ -2,11 +2,15 @@ import { Prisma } from "@prisma/client";
 
 export type ProviderCreateDTO = Prisma.ProviderModelGetPayload<{
   select: {
-    name: true;
-    document: true;
-    email: true;
-    contact: true;
-    dob: true;
+    user: {
+      select: {
+        name: true;
+        document: true;
+        email: true;
+        contact: true;
+        dob: true;
+      };
+    };
     works: {
       select: {
         min_cost: true;
@@ -25,24 +29,35 @@ export type ProviderCreateDTO = Prisma.ProviderModelGetPayload<{
 
 export type ProviderUpdateDTO = Prisma.ProviderModelGetPayload<{
   select: {
-    name: true;
-    email: true;
-    contact: true;
+    user: {
+      select: {
+        id: true;
+        name: true;
+        email: true;
+        contact: true;
+      };
+    };
   };
 }>;
 
 export type SummarizedProviderDTO = Prisma.ProviderModelGetPayload<{
   select: {
     id: true;
-    name: true;
-    document: true;
-    email: true;
-    contact: true;
+    user: {
+      select: {
+        id: true;
+        name: true;
+        document: true;
+        email: true;
+        contact: true;
+      };
+    };
   };
 }>;
 
 export type EnlargedProviderDTO = Prisma.ProviderModelGetPayload<{
   include: {
+    user: true;
     works: {
       include: {
         work: true;

@@ -18,6 +18,18 @@ export default class ProviderRepository {
     return await prisma.providerModel.create({
       data: {
         ...data,
+        user: {
+          connectOrCreate: {
+            where: { document: data.user.document },
+            create: {
+              name: data.user.name,
+              document: data.user.document,
+              email: data.user.email,
+              contact: data.user.contact,
+              dob: data.user.dob,
+            },
+          },
+        },
         works: {
           createMany: {
             data: data.works.map((work) => ({
@@ -35,6 +47,7 @@ export default class ProviderRepository {
         },
       },
       include: {
+        user: true,
         works: {
           include: {
             work: true,
@@ -53,10 +66,15 @@ export default class ProviderRepository {
     return await prisma.providerModel.findMany({
       select: {
         id: true,
-        name: true,
-        document: true,
-        email: true,
-        contact: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            document: true,
+            email: true,
+            contact: true,
+          },
+        },
       },
     });
   }
@@ -65,6 +83,7 @@ export default class ProviderRepository {
     return await prisma.providerModel.findUnique({
       where: { id },
       include: {
+        user: true,
         works: {
           include: {
             work: true,
@@ -82,18 +101,20 @@ export default class ProviderRepository {
   async update(id: string, data: ProviderUpdateDTO) {
     return await prisma.providerModel.update({
       where: { id },
-      data,
-      include: {
-        works: {
-          include: {
-            work: true,
-            jobs: {
-              include: {
-                job: true,
-              },
+      data: {
+        user: {
+          update: {
+            where: { id: data.user.id },
+            data: {
+              name: data.user.name,
+              email: data.user.email,
+              contact: data.user.contact,
             },
           },
         },
+      },
+      include: {
+        user: true,
       },
     });
   }

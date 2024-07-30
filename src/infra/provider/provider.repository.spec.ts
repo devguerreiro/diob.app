@@ -10,11 +10,13 @@ describe("Provider Repository tests", () => {
     const repository = new ProviderRepository();
 
     const data = {
-      name: provider.name,
-      document: provider.document.value,
-      email: provider.email.value,
-      contact: provider.contact.value,
-      dob: provider.dob,
+      user: {
+        name: provider.name,
+        document: provider.document.value,
+        email: provider.email.value,
+        contact: provider.contact.value,
+        dob: provider.dob,
+      },
       works: provider.works.map((work) => ({
         work_id: work.work.id,
         min_cost: work.minCost,
@@ -28,11 +30,14 @@ describe("Provider Repository tests", () => {
 
     const createdProvider = {
       id: provider.id,
-      name: provider.name,
-      document: provider.document.value,
-      email: provider.email.value,
-      contact: provider.contact.value,
-      dob: provider.dob,
+      user: {
+        id: provider.id,
+        name: provider.name,
+        document: provider.document.value,
+        email: provider.email.value,
+        contact: provider.contact.value,
+        dob: provider.dob,
+      },
       works: provider.works.map((work) => ({
         work: {
           id: work.work.id,
@@ -55,6 +60,7 @@ describe("Provider Repository tests", () => {
         provider_id: provider.id,
         min_cost: work.minCost,
       })),
+      user_id: provider.id,
     };
 
     mockedPrisma.providerModel.create.mockResolvedValue(createdProvider);
@@ -65,6 +71,18 @@ describe("Provider Repository tests", () => {
     expect(mockedPrisma.providerModel.create).toHaveBeenCalledWith({
       data: {
         ...data,
+        user: {
+          connectOrCreate: {
+            where: { document: data.user.document },
+            create: {
+              name: data.user.name,
+              document: data.user.document,
+              email: data.user.email,
+              contact: data.user.contact,
+              dob: data.user.dob,
+            },
+          },
+        },
         works: {
           createMany: {
             data: data.works.map((work) => ({
@@ -82,6 +100,7 @@ describe("Provider Repository tests", () => {
         },
       },
       include: {
+        user: true,
         works: {
           include: {
             work: true,
@@ -102,10 +121,13 @@ describe("Provider Repository tests", () => {
 
     const models = Array(5).fill({
       id: provider.id,
-      name: provider.name,
-      document: provider.document.value,
-      email: provider.email.value,
-      contact: provider.contact.value,
+      user: {
+        id: provider.id,
+        name: provider.name,
+        document: provider.document.value,
+        email: provider.email.value,
+        contact: provider.contact.value,
+      },
     });
 
     mockedPrisma.providerModel.findMany.mockResolvedValue(models);
@@ -116,10 +138,15 @@ describe("Provider Repository tests", () => {
     expect(mockedPrisma.providerModel.findMany).toHaveBeenCalledWith({
       select: {
         id: true,
-        name: true,
-        document: true,
-        email: true,
-        contact: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            document: true,
+            email: true,
+            contact: true,
+          },
+        },
       },
     });
   });
@@ -130,11 +157,14 @@ describe("Provider Repository tests", () => {
 
     const model = {
       id: provider.id,
-      name: provider.name,
-      document: provider.document.value,
-      email: provider.email.value,
-      contact: provider.contact.value,
-      dob: provider.dob,
+      user: {
+        id: provider.id,
+        name: provider.name,
+        document: provider.document.value,
+        email: provider.email.value,
+        contact: provider.contact.value,
+        dob: provider.dob,
+      },
       works: provider.works.map((work) => ({
         work: {
           id: work.work.id,
@@ -157,6 +187,7 @@ describe("Provider Repository tests", () => {
         provider_id: provider.id,
         min_cost: work.minCost,
       })),
+      user_id: provider.id,
     };
 
     mockedPrisma.providerModel.findUnique.mockResolvedValue(model);
@@ -167,6 +198,7 @@ describe("Provider Repository tests", () => {
     expect(mockedPrisma.providerModel.findUnique).toHaveBeenCalledWith({
       where: { id: provider.id },
       include: {
+        user: true,
         works: {
           include: {
             work: true,
@@ -192,6 +224,7 @@ describe("Provider Repository tests", () => {
     expect(mockedPrisma.providerModel.findUnique).toHaveBeenCalledWith({
       where: { id: "123" },
       include: {
+        user: true,
         works: {
           include: {
             work: true,
@@ -211,18 +244,24 @@ describe("Provider Repository tests", () => {
     const repository = new ProviderRepository();
 
     const data = {
-      name: provider.name,
-      email: provider.email.value,
-      contact: provider.contact.value,
+      user: {
+        id: provider.id,
+        name: provider.name,
+        email: provider.email.value,
+        contact: provider.contact.value,
+      },
     };
 
     const updatedProvider = {
       id: provider.id,
-      name: provider.name,
-      document: provider.document.value,
-      email: provider.email.value,
-      contact: provider.contact.value,
-      dob: provider.dob,
+      user: {
+        id: provider.id,
+        name: provider.name,
+        document: provider.document.value,
+        email: provider.email.value,
+        contact: provider.contact.value,
+        dob: provider.dob,
+      },
       works: provider.works.map((work) => ({
         work: {
           id: work.work.id,
@@ -245,6 +284,7 @@ describe("Provider Repository tests", () => {
         provider_id: provider.id,
         min_cost: work.minCost,
       })),
+      user_id: provider.id,
     };
 
     mockedPrisma.providerModel.update.mockResolvedValue(updatedProvider);
@@ -254,18 +294,20 @@ describe("Provider Repository tests", () => {
     expect(returnedProvider).toEqual(updatedProvider);
     expect(mockedPrisma.providerModel.update).toHaveBeenCalledWith({
       where: { id: provider.id },
-      data,
-      include: {
-        works: {
-          include: {
-            work: true,
-            jobs: {
-              include: {
-                job: true,
-              },
+      data: {
+        user: {
+          update: {
+            where: { id: data.user.id },
+            data: {
+              name: data.user.name,
+              email: data.user.email,
+              contact: data.user.contact,
             },
           },
         },
+      },
+      include: {
+        user: true,
       },
     });
   });
