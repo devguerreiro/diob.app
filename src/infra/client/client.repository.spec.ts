@@ -10,11 +10,13 @@ describe("Client Repository tests", () => {
     const repository = new ClientRepository();
 
     const data = {
-      name: client.name,
-      document: client.document.value,
-      email: client.email.value,
-      contact: client.contact.value,
-      dob: client.dob,
+      user: {
+        name: client.name,
+        document: client.document.value,
+        email: client.email.value,
+        contact: client.contact.value,
+        dob: client.dob,
+      },
       address_cep: client.address.value.cep,
       address_number: client.address.value.number,
       address_complement: client.address.value.complement ?? null,
@@ -22,11 +24,15 @@ describe("Client Repository tests", () => {
 
     const createdClient = {
       id: client.id,
-      name: client.name,
-      document: client.document.value,
-      email: client.email.value,
-      contact: client.contact.value,
-      dob: client.dob,
+      user: {
+        id: client.id,
+        name: client.name,
+        document: client.document.value,
+        email: client.email.value,
+        contact: client.contact.value,
+        dob: client.dob,
+      },
+      user_id: client.id,
       address_cep: client.address.value.cep,
       address_number: client.address.value.number,
       address_complement: client.address.value.complement ?? null,
@@ -38,7 +44,20 @@ describe("Client Repository tests", () => {
 
     expect(returnedClient).toEqual(createdClient);
     expect(mockedPrisma.clientModel.create).toHaveBeenCalledWith({
-      data,
+      data: {
+        ...data,
+        user: {
+          connectOrCreate: {
+            where: { document: data.user.document },
+            create: {
+              ...data.user,
+            },
+          },
+        },
+      },
+      include: {
+        user: true,
+      },
     });
   });
 
@@ -48,10 +67,13 @@ describe("Client Repository tests", () => {
 
     const models = Array(5).fill({
       id: client.id,
-      name: client.name,
-      document: client.document.value,
-      email: client.email.value,
-      contact: client.contact.value,
+      user: {
+        id: client.id,
+        name: client.name,
+        document: client.document.value,
+        email: client.email.value,
+        contact: client.contact.value,
+      },
     });
 
     mockedPrisma.clientModel.findMany.mockResolvedValue(models);
@@ -62,10 +84,15 @@ describe("Client Repository tests", () => {
     expect(mockedPrisma.clientModel.findMany).toHaveBeenCalledWith({
       select: {
         id: true,
-        name: true,
-        document: true,
-        email: true,
-        contact: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            document: true,
+            email: true,
+            contact: true,
+          },
+        },
       },
     });
   });
@@ -76,11 +103,15 @@ describe("Client Repository tests", () => {
 
     const model = {
       id: client.id,
-      name: client.name,
-      document: client.document.value,
-      email: client.email.value,
-      contact: client.contact.value,
-      dob: client.dob,
+      user: {
+        id: client.id,
+        name: client.name,
+        document: client.document.value,
+        email: client.email.value,
+        contact: client.contact.value,
+        dob: client.dob,
+      },
+      user_id: client.id,
       address_cep: client.address.value.cep,
       address_number: client.address.value.number,
       address_complement: client.address.value.complement ?? null,
@@ -93,6 +124,9 @@ describe("Client Repository tests", () => {
     expect(retrievedClient).toEqual(model);
     expect(mockedPrisma.clientModel.findUnique).toHaveBeenCalledWith({
       where: { id: client.id },
+      include: {
+        user: true,
+      },
     });
   });
 
@@ -106,6 +140,9 @@ describe("Client Repository tests", () => {
     expect(retrievedClient).toBe(null);
     expect(mockedPrisma.clientModel.findUnique).toHaveBeenCalledWith({
       where: { id: "123" },
+      include: {
+        user: true,
+      },
     });
   });
 
@@ -114,9 +151,12 @@ describe("Client Repository tests", () => {
     const repository = new ClientRepository();
 
     const data = {
-      name: "New Name",
-      email: "new@email.com",
-      contact: "123456789",
+      user: {
+        id: client.id,
+        name: "New Name",
+        email: "new@email.com",
+        contact: "123456789",
+      },
       address_cep: "123456",
       address_number: 123,
       address_complement: null,
@@ -124,11 +164,15 @@ describe("Client Repository tests", () => {
 
     const updatedModel = {
       id: client.id,
-      name: "New Name",
-      document: client.document.value,
-      email: "new@email.com",
-      contact: "123456789",
-      dob: client.dob,
+      user: {
+        id: client.id,
+        name: "New Name",
+        document: client.document.value,
+        email: "new@email.com",
+        contact: "123456789",
+        dob: client.dob,
+      },
+      user_id: client.id,
       address_cep: "123456",
       address_number: 123,
       address_complement: null,
@@ -141,7 +185,22 @@ describe("Client Repository tests", () => {
     expect(returnedClient).toEqual(updatedModel);
     expect(mockedPrisma.clientModel.update).toHaveBeenCalledWith({
       where: { id: client.id },
-      data,
+      data: {
+        ...data,
+        user: {
+          update: {
+            where: { id: data.user.id },
+            data: {
+              name: data.user.name,
+              email: data.user.email,
+              contact: data.user.contact,
+            },
+          },
+        },
+      },
+      include: {
+        user: true,
+      },
     });
   });
 

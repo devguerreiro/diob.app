@@ -1,5 +1,3 @@
-import { ClientModel } from "@prisma/client";
-
 import { prisma } from "@/lib/prisma";
 
 import {
@@ -10,30 +8,70 @@ import {
 } from "./client.dto";
 
 export default class ClientRepository {
-  async create(data: ClientCreateDTO): Promise<ClientModel> {
-    return await prisma.clientModel.create({ data });
+  async create(data: ClientCreateDTO) {
+    return await prisma.clientModel.create({
+      data: {
+        ...data,
+        user: {
+          connectOrCreate: {
+            where: { document: data.user.document },
+            create: {
+              ...data.user,
+            },
+          },
+        },
+      },
+      include: {
+        user: true,
+      },
+    });
   }
 
   async all(): Promise<Array<SummarizedClientDTO>> {
     return await prisma.clientModel.findMany({
       select: {
         id: true,
-        name: true,
-        document: true,
-        email: true,
-        contact: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            document: true,
+            email: true,
+            contact: true,
+          },
+        },
       },
     });
   }
 
   async getByID(id: string): Promise<EnlargedClientDTO | null> {
-    return await prisma.clientModel.findUnique({ where: { id } });
+    return await prisma.clientModel.findUnique({
+      where: { id },
+      include: {
+        user: true,
+      },
+    });
   }
 
-  async update(id: string, data: ClientUpdateDTO): Promise<ClientModel> {
+  async update(id: string, data: ClientUpdateDTO) {
     return await prisma.clientModel.update({
       where: { id },
-      data,
+      data: {
+        ...data,
+        user: {
+          update: {
+            where: { id: data.user.id },
+            data: {
+              name: data.user.name,
+              email: data.user.email,
+              contact: data.user.contact,
+            },
+          },
+        },
+      },
+      include: {
+        user: true,
+      },
     });
   }
 
