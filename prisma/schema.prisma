@@ -93,7 +93,7 @@ model LogModel {
   status               String
   by_id                String
   by                   UserModel          @relation(fields: [by_id], references: [id])
-  at                   DateTime
+  at                   DateTime           @default(now())
   reason               String?
   service_request_id   String
   service_request      ServiceRequestModel @relation(fields: [service_request_id], references: [id])
@@ -107,8 +107,8 @@ model ServiceRequestModel {
   provider             ProviderModel      @relation(fields: [provider_id], references: [id])
   cost                 Float
   estimated_duration   Float
-  created_at           DateTime
-  updated_at           DateTime
+  created_at           DateTime           @default(now())
+  updated_at           DateTime           @updatedAt
   scheduled_at         DateTime
   logs                 LogModel[]
   works                ServiceRequestWorkModel[]

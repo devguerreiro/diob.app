@@ -72,7 +72,7 @@ CREATE TABLE "LogModel" (
     "id" TEXT NOT NULL,
     "status" TEXT NOT NULL,
     "by_id" TEXT NOT NULL,
-    "at" TIMESTAMP(3) NOT NULL,
+    "at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "reason" TEXT,
     "service_request_id" TEXT NOT NULL,
 
@@ -86,7 +86,7 @@ CREATE TABLE "ServiceRequestModel" (
     "provider_id" TEXT NOT NULL,
     "cost" DOUBLE PRECISION NOT NULL,
     "estimated_duration" DOUBLE PRECISION NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "scheduled_at" TIMESTAMP(3) NOT NULL,
 
