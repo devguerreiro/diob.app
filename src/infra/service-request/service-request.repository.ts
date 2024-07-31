@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import {
   EnlargedServiceRequestDTO,
   ServiceRequestCreateDTO,
+  LogCreateDTO,
   SummarizedServiceRequestDTO,
 } from "./service-request.dto";
 
@@ -117,6 +118,15 @@ export default class ServiceRequestRepository {
             },
           },
         },
+      },
+    });
+  }
+
+  async addLog(id: string, data: LogCreateDTO) {
+    return await prisma.logModel.create({
+      data: {
+        ...data,
+        service_request_id: id,
       },
     });
   }

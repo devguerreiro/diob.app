@@ -17,7 +17,7 @@ export enum StatusEnum {
   RATED = "RATED",
 }
 
-type Log = LogInterface<StatusEnum>;
+export type Log = LogInterface<StatusEnum>;
 type Logs = Array<Log>;
 
 export default class ServiceRequest {

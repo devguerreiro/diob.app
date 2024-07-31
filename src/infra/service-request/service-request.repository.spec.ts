@@ -1,6 +1,9 @@
 import { mockedPrisma } from "@/lib/mocked-prisma";
 
-import { makeFakeServiceRequest } from "@/domain/service-request/entity/service-request.spec.fixture";
+import {
+  makeFakeServiceRequest,
+  makeFakeServiceRequestLog,
+} from "@/domain/service-request/entity/service-request.spec.fixture";
 
 import ServiceRequestRepository from "./service-request.repository";
 
@@ -329,6 +332,39 @@ describe("Service Request Repository tests", () => {
             },
           },
         },
+      },
+    });
+  });
+
+  it("should be able to insert a service request log on database", async () => {
+    const serviceRequest = makeFakeServiceRequest();
+    const log = makeFakeServiceRequestLog();
+    const repository = new ServiceRequestRepository();
+
+    const data = {
+      status: log.status,
+      by_id: log.by.id,
+      reason: null,
+    };
+
+    const createdLog = {
+      id: "1",
+      status: "CREATED",
+      by_id: serviceRequest.client.id,
+      at: new Date(),
+      reason: null,
+      service_request_id: serviceRequest.id,
+    };
+
+    mockedPrisma.logModel.create.mockResolvedValue(createdLog);
+
+    const returnedLog = await repository.addLog(serviceRequest.id, data);
+
+    expect(returnedLog).toEqual(createdLog);
+    expect(mockedPrisma.logModel.create).toHaveBeenCalledWith({
+      data: {
+        ...data,
+        service_request_id: serviceRequest.id,
       },
     });
   });

@@ -73,3 +73,11 @@ export type EnlargedServiceRequestDTO = Prisma.ServiceRequestModelGetPayload<{
     };
   };
 }>;
+
+export type LogCreateDTO = Prisma.LogModelGetPayload<{
+  select: {
+    status: true;
+    by_id: true;
+    reason?: true;
+  };
+}>;
