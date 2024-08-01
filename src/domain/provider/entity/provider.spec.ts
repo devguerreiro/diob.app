@@ -113,6 +113,25 @@ describe("Provider Entity", () => {
     }).toThrow("It's not possible to add the same work twice");
   });
 
+  it("should be able to update a work", () => {
+    const provider = makeFakeProvider();
+    const work = provider.works[0];
+    const currentMinCost = work.minCost;
+
+    provider.updateWork(work.id, currentMinCost + 1);
+
+    expect(work.minCost).toEqual(currentMinCost + 1);
+  });
+
+  it("should not be able to update a non-practicable work", () => {
+    const provider = makeFakeProvider();
+    const nonPracticableWork = makeFakeProviderWork();
+
+    expect(() => {
+      provider.updateWork(nonPracticableWork.id, 0);
+    }).toThrow("It's not possible to update a non-practicable work");
+  });
+
   it("should be able to remove a work", () => {
     const provider = makeFakeProvider();
 
@@ -137,10 +156,10 @@ describe("Provider Entity", () => {
 
   it("should not be able to remove a non-practicable work", () => {
     const provider = makeFakeProvider();
-    const newWork = makeFakeProviderWork();
+    const nonPracticableWork = makeFakeProviderWork();
 
     expect(() => {
-      provider.removeWork(newWork);
+      provider.removeWork(nonPracticableWork);
     }).toThrow("It's not possible to remove a non-practicable work");
   });
 
@@ -187,6 +206,29 @@ describe("Provider Entity", () => {
     }).toThrow("It's not possible to add the same job twice");
   });
 
+  it("should be able to update a job", () => {
+    const provider = makeFakeProvider();
+    const work = provider.works[0];
+    const job = work.jobs[0];
+    const currentCost = job.cost;
+    const currentEstimatedDuration = job.estimatedDuration;
+
+    work.updateJob(job.id, currentCost + 1, currentEstimatedDuration + 1);
+
+    expect(job.cost).toEqual(currentCost + 1);
+    expect(job.estimatedDuration).toEqual(currentEstimatedDuration + 1);
+  });
+
+  it("should not be able to update a non-practicable job", () => {
+    const provider = makeFakeProvider();
+    const work = provider.works[0];
+    const nonPracticableJob = makeFakeProviderWorkJob();
+
+    expect(() => {
+      work.updateJob(nonPracticableJob.id, 0, 0);
+    }).toThrow("It's not possible to update a non-practicable job");
+  });
+
   it("should be able to remove a job", () => {
     const provider = makeFakeProvider();
     const existingWork = provider.works[0];
@@ -213,10 +255,10 @@ describe("Provider Entity", () => {
   it("should not be able to remove a non-practicable job", () => {
     const provider = makeFakeProvider();
     const existingWork = provider.works[0];
-    const newWorkJob = makeFakeProviderWorkJob();
+    const nonPracticableJob = makeFakeProviderWorkJob();
 
     expect(() => {
-      existingWork.removeJob(newWorkJob);
+      existingWork.removeJob(nonPracticableJob);
     }).toThrow("It's not possible to remove a non-practicable job");
   });
 

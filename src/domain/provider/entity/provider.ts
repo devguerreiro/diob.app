@@ -43,6 +43,15 @@ export default class Provider extends User {
     this._works.push(work);
   }
 
+  updateWork(workId: string, minCost: number): void {
+    const work = this._works.find((work) => work.id === workId);
+
+    if (!work)
+      throw new Error("It's not possible to update a non-practicable work");
+
+    work.changeMinCost(minCost);
+  }
+
   removeWork(work: ProviderWork): void {
     const workIndex = this._works.findIndex((j) => j.id === work.id);
 
@@ -93,6 +102,10 @@ export class ProviderWork {
       throw new Error("Provider work must have at least one job");
   }
 
+  changeMinCost(minCost: number): void {
+    this._minCost = minCost;
+  }
+
   addJob(job: ProviderWorkJob): void {
     const jobIndex = this._jobs.findIndex((s) => s.id === job.id);
 
@@ -100,6 +113,16 @@ export class ProviderWork {
       throw new Error("It's not possible to add the same job twice");
 
     this._jobs.push(job);
+  }
+
+  updateJob(jobId: string, cost: number, estimatedDuration: number): void {
+    const job = this._jobs.find((job) => job.id === jobId);
+
+    if (!job)
+      throw new Error("It's not possible to update a non-practicable job");
+
+    job.changeCost(cost);
+    job.changeEstimatedDuration(estimatedDuration);
   }
 
   removeJob(job: ProviderWorkJob): void {
@@ -138,5 +161,13 @@ export class ProviderWorkJob {
 
   get workJob(): WorkJob {
     return this._workJob;
+  }
+
+  changeCost(cost: number): void {
+    this._cost = cost;
+  }
+
+  changeEstimatedDuration(estimatedDuration: number): void {
+    this._estimatedDuration = estimatedDuration;
   }
 }
