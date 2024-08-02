@@ -20,7 +20,7 @@ describe("Service Request Repository tests", () => {
       scheduled_at: serviceRequest.when,
       logs: [
         {
-          status: "CREATED",
+          status: "SCHEDULED",
           by_id: serviceRequest.client.id,
           reason: null,
         },
@@ -34,7 +34,7 @@ describe("Service Request Repository tests", () => {
     };
 
     const createdServiceRequest = {
-      id: serviceRequest.id,
+      id: serviceRequest.id as string,
       client_id: serviceRequest.client.id,
       provider_id: serviceRequest.provider.id,
       created_at: new Date(),
@@ -67,7 +67,7 @@ describe("Service Request Repository tests", () => {
       logs: [
         {
           id: "1",
-          status: "CREATED",
+          status: "SCHEDULED",
           by_id: serviceRequest.client.id,
           at: new Date(),
           reason: null,
@@ -182,7 +182,7 @@ describe("Service Request Repository tests", () => {
     const repository = new ServiceRequestRepository();
 
     const model = {
-      id: serviceRequest.id,
+      id: serviceRequest.id as string,
       client: {
         id: serviceRequest.client.id,
         user: {
@@ -243,7 +243,7 @@ describe("Service Request Repository tests", () => {
       logs: [
         {
           id: "1",
-          status: "CREATED",
+          status: "SCHEDULED",
           by_id: serviceRequest.client.id,
           at: new Date(),
           reason: null,
@@ -253,7 +253,9 @@ describe("Service Request Repository tests", () => {
 
     mockedPrisma.serviceRequestModel.findUnique.mockResolvedValue(model);
 
-    const retrievedServiceRequest = await repository.getByID(serviceRequest.id);
+    const retrievedServiceRequest = await repository.getByID(
+      serviceRequest.id as string
+    );
 
     expect(retrievedServiceRequest).toEqual(model);
     expect(mockedPrisma.serviceRequestModel.findUnique).toHaveBeenCalledWith({
@@ -349,16 +351,19 @@ describe("Service Request Repository tests", () => {
 
     const createdLog = {
       id: "1",
-      status: "CREATED",
+      status: "SCHEDULED",
       by_id: serviceRequest.client.id,
       at: new Date(),
       reason: null,
-      service_request_id: serviceRequest.id,
+      service_request_id: serviceRequest.id as string,
     };
 
     mockedPrisma.logModel.create.mockResolvedValue(createdLog);
 
-    const returnedLog = await repository.addLog(serviceRequest.id, data);
+    const returnedLog = await repository.addLog(
+      serviceRequest.id as string,
+      data
+    );
 
     expect(returnedLog).toEqual(createdLog);
     expect(mockedPrisma.logModel.create).toHaveBeenCalledWith({

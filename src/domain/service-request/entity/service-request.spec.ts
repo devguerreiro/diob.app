@@ -14,68 +14,14 @@ beforeEach(() => {
 });
 
 describe("ServiceRequest Entity", () => {
-  // CREATING
-
-  it("should be able to the client create the request", () => {
-    const newServiceRequest = makeFakeServiceRequest();
-
-    newServiceRequest.create(newServiceRequest.client);
-
-    expect(newServiceRequest.logs.length).toEqual(1);
-
-    expect(newServiceRequest.currentLog.status).toBe(StatusEnum.CREATED);
-    expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.client);
-    expect(newServiceRequest.currentLog.at).toBeDefined();
-    expect(newServiceRequest.currentLog.reason).toBeUndefined();
-  });
-
-  it("should not be able to create the request if not the client", () => {
-    const newServiceRequest = makeFakeServiceRequest();
-
-    expect(() => {
-      newServiceRequest.create(newServiceRequest.provider);
-    }).toThrow("Only the client can create the request");
-  });
-
-  it.each([
-    StatusEnum.CREATED,
-    StatusEnum.SCHEDULED,
-    StatusEnum.RESCHEDULED,
-    StatusEnum.CANCELLED,
-    StatusEnum.CONFIRMED,
-    StatusEnum.REFUSED,
-    StatusEnum.STARTED,
-    StatusEnum.FINISHED,
-    StatusEnum.RATED,
-  ])(
-    "should not be able to client create the request on stages",
-    (status: StatusEnum) => {
-      const newServiceRequest = makeFakeServiceRequest();
-
-      jest.spyOn(ServiceRequest.prototype, "logs", "get").mockReturnValue([
-        {
-          status,
-          by: newServiceRequest.client,
-          at: new Date(),
-        },
-      ]);
-
-      expect(() => {
-        newServiceRequest.create(newServiceRequest.client);
-      }).toThrow("The request cannot be created on current stage");
-    }
-  );
-
   // SCHEDULING
 
   it("should be able to the client schedule the request", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
-    newServiceRequest.create(newServiceRequest.client);
-
     newServiceRequest.schedule(newServiceRequest.client);
 
-    expect(newServiceRequest.logs.length).toEqual(2);
+    expect(newServiceRequest.logs.length).toEqual(1);
 
     expect(newServiceRequest.currentLog.status).toBe(StatusEnum.SCHEDULED);
     expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.client);
@@ -86,38 +32,10 @@ describe("ServiceRequest Entity", () => {
   it("should not be able to schedule the request if not the client", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
-    newServiceRequest.create(newServiceRequest.client);
-
     expect(() => {
       newServiceRequest.schedule(newServiceRequest.provider);
     }).toThrow("Only the client can schedule the request");
   });
-
-  it.each([StatusEnum.CREATED])(
-    "should be able to client schedule the request on stages",
-    (status: StatusEnum) => {
-      const newServiceRequest = makeFakeServiceRequest();
-
-      jest
-        .spyOn(ServiceRequest.prototype, "currentLog", "get")
-        .mockReturnValue({
-          status,
-          by: newServiceRequest.client,
-          at: new Date(),
-        });
-
-      newServiceRequest.schedule(newServiceRequest.client);
-
-      jest.restoreAllMocks();
-
-      expect(newServiceRequest.logs.length).toEqual(1);
-
-      expect(newServiceRequest.currentLog.status).toBe(StatusEnum.SCHEDULED);
-      expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.client);
-      expect(newServiceRequest.currentLog.at).toBeDefined();
-      expect(newServiceRequest.currentLog.reason).toBeUndefined();
-    }
-  );
 
   it.each([
     StatusEnum.SCHEDULED,
@@ -133,13 +51,13 @@ describe("ServiceRequest Entity", () => {
     (status: StatusEnum) => {
       const newServiceRequest = makeFakeServiceRequest();
 
-      jest
-        .spyOn(ServiceRequest.prototype, "currentLog", "get")
-        .mockReturnValue({
+      jest.spyOn(ServiceRequest.prototype, "logs", "get").mockReturnValue([
+        {
           status,
           by: newServiceRequest.client,
           at: new Date(),
-        });
+        },
+      ]);
 
       expect(() => {
         newServiceRequest.schedule(newServiceRequest.client);
@@ -152,13 +70,11 @@ describe("ServiceRequest Entity", () => {
   it("should be able to the client reschedule the request", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
-    newServiceRequest.create(newServiceRequest.client);
-
     newServiceRequest.schedule(newServiceRequest.client);
 
     newServiceRequest.reschedule(newServiceRequest.client);
 
-    expect(newServiceRequest.logs.length).toEqual(3);
+    expect(newServiceRequest.logs.length).toEqual(2);
 
     expect(newServiceRequest.currentLog.status).toBe(StatusEnum.RESCHEDULED);
     expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.client);
@@ -168,8 +84,6 @@ describe("ServiceRequest Entity", () => {
 
   it("should not be able to reschedule the request if not the client", () => {
     const newServiceRequest = makeFakeServiceRequest();
-
-    newServiceRequest.create(newServiceRequest.client);
 
     newServiceRequest.schedule(newServiceRequest.client);
 
@@ -205,7 +119,6 @@ describe("ServiceRequest Entity", () => {
   );
 
   it.each([
-    StatusEnum.CREATED,
     StatusEnum.CANCELLED,
     StatusEnum.CONFIRMED,
     StatusEnum.REFUSED,
@@ -236,13 +149,11 @@ describe("ServiceRequest Entity", () => {
   it("should be able to the client cancel the request", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
-    newServiceRequest.create(newServiceRequest.client);
-
     newServiceRequest.schedule(newServiceRequest.client);
 
     newServiceRequest.cancel(newServiceRequest.client, "foo");
 
-    expect(newServiceRequest.logs.length).toEqual(3);
+    expect(newServiceRequest.logs.length).toEqual(2);
 
     expect(newServiceRequest.currentLog.status).toBe(StatusEnum.CANCELLED);
     expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.client);
@@ -252,8 +163,6 @@ describe("ServiceRequest Entity", () => {
 
   it("should not be able to cancel the request if not the client", () => {
     const newServiceRequest = makeFakeServiceRequest();
-
-    newServiceRequest.create(newServiceRequest.client);
 
     newServiceRequest.schedule(newServiceRequest.client);
 
@@ -289,7 +198,6 @@ describe("ServiceRequest Entity", () => {
   );
 
   it.each([
-    StatusEnum.CREATED,
     StatusEnum.REFUSED,
     StatusEnum.STARTED,
     StatusEnum.FINISHED,
@@ -334,13 +242,11 @@ describe("ServiceRequest Entity", () => {
   it("should be able to the provider confirm the request", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
-    newServiceRequest.create(newServiceRequest.client);
-
     newServiceRequest.schedule(newServiceRequest.client);
 
     newServiceRequest.confirm(newServiceRequest.provider);
 
-    expect(newServiceRequest.logs.length).toEqual(3);
+    expect(newServiceRequest.logs.length).toEqual(2);
 
     expect(newServiceRequest.currentLog.status).toBe(StatusEnum.CONFIRMED);
     expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.provider);
@@ -350,8 +256,6 @@ describe("ServiceRequest Entity", () => {
 
   it("should not be able to client confirm the request if not the provider", () => {
     const newServiceRequest = makeFakeServiceRequest();
-
-    newServiceRequest.create(newServiceRequest.client);
 
     newServiceRequest.schedule(newServiceRequest.client);
 
@@ -387,7 +291,6 @@ describe("ServiceRequest Entity", () => {
   );
 
   it.each([
-    StatusEnum.CREATED,
     StatusEnum.CANCELLED,
     StatusEnum.CONFIRMED,
     StatusEnum.REFUSED,
@@ -418,13 +321,11 @@ describe("ServiceRequest Entity", () => {
   it("should be able to the provider refuse the request", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
-    newServiceRequest.create(newServiceRequest.client);
-
     newServiceRequest.schedule(newServiceRequest.client);
 
     newServiceRequest.refuse(newServiceRequest.provider);
 
-    expect(newServiceRequest.logs.length).toEqual(3);
+    expect(newServiceRequest.logs.length).toEqual(2);
 
     expect(newServiceRequest.currentLog.status).toBe(StatusEnum.REFUSED);
     expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.provider);
@@ -434,8 +335,6 @@ describe("ServiceRequest Entity", () => {
 
   it("should not be able to client refuse the request if not the provider", () => {
     const newServiceRequest = makeFakeServiceRequest();
-
-    newServiceRequest.create(newServiceRequest.client);
 
     newServiceRequest.schedule(newServiceRequest.client);
 
@@ -471,7 +370,6 @@ describe("ServiceRequest Entity", () => {
   );
 
   it.each([
-    StatusEnum.CREATED,
     StatusEnum.CANCELLED,
     StatusEnum.CONFIRMED,
     StatusEnum.REFUSED,
@@ -502,8 +400,6 @@ describe("ServiceRequest Entity", () => {
   it("should be able to the provider start the request", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
-    newServiceRequest.create(newServiceRequest.client);
-
     newServiceRequest.schedule(newServiceRequest.client);
 
     newServiceRequest.confirm(newServiceRequest.provider);
@@ -512,7 +408,7 @@ describe("ServiceRequest Entity", () => {
 
     newServiceRequest.start(newServiceRequest.provider);
 
-    expect(newServiceRequest.logs.length).toEqual(4);
+    expect(newServiceRequest.logs.length).toEqual(3);
 
     expect(newServiceRequest.currentLog.status).toBe(StatusEnum.STARTED);
     expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.provider);
@@ -522,8 +418,6 @@ describe("ServiceRequest Entity", () => {
 
   it("should not be able to start the request if not the provider", () => {
     const newServiceRequest = makeFakeServiceRequest();
-
-    newServiceRequest.create(newServiceRequest.client);
 
     newServiceRequest.schedule(newServiceRequest.client);
 
@@ -559,7 +453,6 @@ describe("ServiceRequest Entity", () => {
   );
 
   it.each([
-    StatusEnum.CREATED,
     StatusEnum.SCHEDULED,
     StatusEnum.RESCHEDULED,
     StatusEnum.CANCELLED,
@@ -589,8 +482,6 @@ describe("ServiceRequest Entity", () => {
   it("should not be able to the provider start the request before the scheduled date and time", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
-    newServiceRequest.create(newServiceRequest.client);
-
     newServiceRequest.schedule(newServiceRequest.client);
 
     newServiceRequest.confirm(newServiceRequest.provider);
@@ -613,8 +504,6 @@ describe("ServiceRequest Entity", () => {
   it("should be able to the provider finish the request", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
-    newServiceRequest.create(newServiceRequest.client);
-
     newServiceRequest.schedule(newServiceRequest.client);
 
     newServiceRequest.confirm(newServiceRequest.provider);
@@ -625,7 +514,7 @@ describe("ServiceRequest Entity", () => {
 
     newServiceRequest.finish(newServiceRequest.provider);
 
-    expect(newServiceRequest.logs.length).toEqual(5);
+    expect(newServiceRequest.logs.length).toEqual(4);
 
     expect(newServiceRequest.currentLog.status).toBe(StatusEnum.FINISHED);
     expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.provider);
@@ -635,8 +524,6 @@ describe("ServiceRequest Entity", () => {
 
   it("should be able to the client finish the request", () => {
     const newServiceRequest = makeFakeServiceRequest();
-
-    newServiceRequest.create(newServiceRequest.client);
 
     newServiceRequest.schedule(newServiceRequest.client);
 
@@ -648,7 +535,7 @@ describe("ServiceRequest Entity", () => {
 
     newServiceRequest.finish(newServiceRequest.client);
 
-    expect(newServiceRequest.logs.length).toEqual(5);
+    expect(newServiceRequest.logs.length).toEqual(4);
 
     expect(newServiceRequest.currentLog.status).toBe(StatusEnum.FINISHED);
     expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.client);
@@ -709,7 +596,6 @@ describe("ServiceRequest Entity", () => {
   );
 
   it.each([
-    StatusEnum.CREATED,
     StatusEnum.SCHEDULED,
     StatusEnum.RESCHEDULED,
     StatusEnum.CANCELLED,
@@ -736,7 +622,6 @@ describe("ServiceRequest Entity", () => {
   );
 
   it.each([
-    StatusEnum.CREATED,
     StatusEnum.SCHEDULED,
     StatusEnum.RESCHEDULED,
     StatusEnum.CANCELLED,
@@ -799,8 +684,6 @@ describe("ServiceRequest Entity", () => {
   it("should be able to the client rate the request provider", () => {
     const newServiceRequest = makeFakeServiceRequest();
 
-    newServiceRequest.create(newServiceRequest.client);
-
     newServiceRequest.schedule(newServiceRequest.client);
 
     makeServiceRequestReadyToStart();
@@ -819,7 +702,7 @@ describe("ServiceRequest Entity", () => {
       5
     );
 
-    expect(newServiceRequest.logs.length).toEqual(6);
+    expect(newServiceRequest.logs.length).toEqual(5);
 
     expect(newServiceRequest.currentLog.status).toBe(StatusEnum.RATED);
     expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.client);
@@ -831,8 +714,6 @@ describe("ServiceRequest Entity", () => {
 
   it("should be able to the provider rate the request client", () => {
     const newServiceRequest = makeFakeServiceRequest();
-
-    newServiceRequest.create(newServiceRequest.client);
 
     newServiceRequest.schedule(newServiceRequest.client);
 
@@ -852,7 +733,7 @@ describe("ServiceRequest Entity", () => {
       5
     );
 
-    expect(newServiceRequest.logs.length).toEqual(6);
+    expect(newServiceRequest.logs.length).toEqual(5);
 
     expect(newServiceRequest.currentLog.status).toBe(StatusEnum.RATED);
     expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.provider);
@@ -923,7 +804,6 @@ describe("ServiceRequest Entity", () => {
   );
 
   it.each([
-    StatusEnum.CREATED,
     StatusEnum.SCHEDULED,
     StatusEnum.RESCHEDULED,
     StatusEnum.CANCELLED,
@@ -954,7 +834,6 @@ describe("ServiceRequest Entity", () => {
   );
 
   it.each([
-    StatusEnum.CREATED,
     StatusEnum.SCHEDULED,
     StatusEnum.RESCHEDULED,
     StatusEnum.CANCELLED,

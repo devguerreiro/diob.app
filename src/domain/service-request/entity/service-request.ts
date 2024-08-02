@@ -6,7 +6,6 @@ import Client from "@/domain/client/entity/client";
 import Provider from "@/domain/provider/entity/provider";
 
 export enum StatusEnum {
-  CREATED = "CREATED",
   SCHEDULED = "SCHEDULED",
   RESCHEDULED = "RESCHEDULED",
   CANCELLED = "CANCELLED",
@@ -24,13 +23,13 @@ export default class ServiceRequest {
   private _logs: Logs = [];
 
   constructor(
-    private _id: string,
     private _client: Client,
     private _provider: Provider,
-    private _scheduled_at: Date
+    private _scheduled_at: Date,
+    private _id: string | null = null
   ) {}
 
-  get id(): string {
+  get id(): string | null {
     return this._id;
   }
 
@@ -63,27 +62,17 @@ export default class ServiceRequest {
     });
   }
 
-  create(by: User): void {
-    if (by !== this._client) {
-      throw new Error("Only the client can create the request");
-    } else if (this.logs.length > 0) {
-      throw new Error("The request cannot be created on current stage");
-    }
-
-    this.saveLog(StatusEnum.CREATED, this._client);
-  }
-
   schedule(by: User): void {
     if (by !== this._client) {
       throw new Error("Only the client can schedule the request");
-    } else if (this.currentLog.status !== StatusEnum.CREATED) {
+    } else if (this.logs.length > 0) {
       throw new Error("The request cannot be scheduled on current stage");
     }
 
     this.saveLog(StatusEnum.SCHEDULED, by);
   }
 
-  reschedule(by: User): void {
+  reschedule(by: User, when: Date): void {
     if (by !== this._client) {
       throw new Error("Only the client can reschedule the request");
     } else if (
@@ -94,6 +83,7 @@ export default class ServiceRequest {
       throw new Error("The request cannot be rescheduled on current stage");
     }
 
+    this._scheduled_at = when;
     this.saveLog(StatusEnum.RESCHEDULED, by);
   }
 
@@ -177,19 +167,17 @@ export default class ServiceRequest {
     } else this.saveLog(StatusEnum.FINISHED, by);
   }
 
-  rate(evaluator: User, evaluated: User, rating: number): void {
+  rate(by: User): void {
     if (
-      this.logs.some(
-        (log) => log.status === StatusEnum.RATED && log.by === evaluator
-      )
+      this.logs.some((log) => log.status === StatusEnum.RATED && log.by === by)
     ) {
       throw new Error("The request can only be rated once");
     } else if (
       ![StatusEnum.FINISHED, StatusEnum.RATED].includes(this.currentLog.status)
     ) {
       throw new Error("The request cannot be rated on current stage");
-    } else evaluator.rate(evaluated, rating);
+    }
 
-    this.saveLog(StatusEnum.RATED, evaluator);
+    this.saveLog(StatusEnum.RATED, by);
   }
 }

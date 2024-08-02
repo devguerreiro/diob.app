@@ -7,14 +7,16 @@ import ServiceRequest, { Log, StatusEnum } from "./service-request";
 
 export const makeFakeServiceRequest = () =>
   new ServiceRequest(
-    uuidV4(),
     makeFakeClient(),
     makeFakeProvider(),
-    new Date()
+    new Date(),
+    uuidV4()
   );
 
-export const makeFakeServiceRequestLog = (): Log => ({
-  status: StatusEnum.CREATED,
+export const makeFakeServiceRequestLog = (
+  status: StatusEnum = StatusEnum.SCHEDULED
+): Log => ({
+  status,
   by: makeFakeClient(),
   at: new Date(),
 });
