@@ -69,10 +69,13 @@ describe("ServiceRequest Entity", () => {
 
   it("should be able to the client reschedule the request", () => {
     const newServiceRequest = makeFakeServiceRequest();
+    const when = new Date();
 
     newServiceRequest.schedule(newServiceRequest.client);
 
-    newServiceRequest.reschedule(newServiceRequest.client);
+    newServiceRequest.reschedule(newServiceRequest.client, when);
+
+    expect(newServiceRequest.when).toEqual(when);
 
     expect(newServiceRequest.logs.length).toEqual(2);
 
@@ -88,7 +91,7 @@ describe("ServiceRequest Entity", () => {
     newServiceRequest.schedule(newServiceRequest.client);
 
     expect(() => {
-      newServiceRequest.reschedule(newServiceRequest.provider);
+      newServiceRequest.reschedule(newServiceRequest.provider, new Date());
     }).toThrow("Only the client can reschedule the request");
   });
 
@@ -96,6 +99,7 @@ describe("ServiceRequest Entity", () => {
     "should be able to client reschedule the request on stages",
     (status: StatusEnum) => {
       const newServiceRequest = makeFakeServiceRequest();
+      const when = new Date();
 
       jest
         .spyOn(ServiceRequest.prototype, "currentLog", "get")
@@ -105,9 +109,11 @@ describe("ServiceRequest Entity", () => {
           at: new Date(),
         });
 
-      newServiceRequest.reschedule(newServiceRequest.client);
+      newServiceRequest.reschedule(newServiceRequest.client, when);
 
       jest.restoreAllMocks();
+
+      expect(newServiceRequest.when).toEqual(when);
 
       expect(newServiceRequest.logs.length).toEqual(1);
 
@@ -139,7 +145,7 @@ describe("ServiceRequest Entity", () => {
         });
 
       expect(() => {
-        newServiceRequest.reschedule(newServiceRequest.client);
+        newServiceRequest.reschedule(newServiceRequest.client, new Date());
       }).toThrow("The request cannot be rescheduled on current stage");
     }
   );
@@ -694,13 +700,7 @@ describe("ServiceRequest Entity", () => {
 
     newServiceRequest.finish(newServiceRequest.client);
 
-    const spiedMethod = jest.spyOn(newServiceRequest.client, "rate");
-
-    newServiceRequest.rate(
-      newServiceRequest.client,
-      newServiceRequest.provider,
-      5
-    );
+    newServiceRequest.rate(newServiceRequest.client);
 
     expect(newServiceRequest.logs.length).toEqual(5);
 
@@ -708,8 +708,6 @@ describe("ServiceRequest Entity", () => {
     expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.client);
     expect(newServiceRequest.currentLog.at).toBeDefined();
     expect(newServiceRequest.currentLog.reason).toBeUndefined();
-
-    expect(spiedMethod).toHaveBeenCalledWith(newServiceRequest.provider, 5);
   });
 
   it("should be able to the provider rate the request client", () => {
@@ -725,13 +723,7 @@ describe("ServiceRequest Entity", () => {
 
     newServiceRequest.finish(newServiceRequest.provider);
 
-    const spiedMethod = jest.spyOn(newServiceRequest.provider, "rate");
-
-    newServiceRequest.rate(
-      newServiceRequest.provider,
-      newServiceRequest.client,
-      5
-    );
+    newServiceRequest.rate(newServiceRequest.provider);
 
     expect(newServiceRequest.logs.length).toEqual(5);
 
@@ -739,8 +731,6 @@ describe("ServiceRequest Entity", () => {
     expect(newServiceRequest.currentLog.by).toBe(newServiceRequest.provider);
     expect(newServiceRequest.currentLog.at).toBeDefined();
     expect(newServiceRequest.currentLog.reason).toBeUndefined();
-
-    expect(spiedMethod).toHaveBeenCalledWith(newServiceRequest.client, 5);
   });
 
   it.each([StatusEnum.FINISHED, StatusEnum.RATED])(
@@ -756,11 +746,7 @@ describe("ServiceRequest Entity", () => {
           at: new Date(),
         });
 
-      newServiceRequest.rate(
-        newServiceRequest.client,
-        newServiceRequest.provider,
-        5
-      );
+      newServiceRequest.rate(newServiceRequest.client);
 
       jest.restoreAllMocks();
 
@@ -786,11 +772,7 @@ describe("ServiceRequest Entity", () => {
           at: new Date(),
         });
 
-      newServiceRequest.rate(
-        newServiceRequest.provider,
-        newServiceRequest.client,
-        5
-      );
+      newServiceRequest.rate(newServiceRequest.provider);
 
       jest.restoreAllMocks();
 
@@ -824,11 +806,7 @@ describe("ServiceRequest Entity", () => {
         });
 
       expect(() => {
-        newServiceRequest.rate(
-          newServiceRequest.client,
-          newServiceRequest.provider,
-          5
-        );
+        newServiceRequest.rate(newServiceRequest.client);
       }).toThrow("The request cannot be rated on current stage");
     }
   );
@@ -854,11 +832,7 @@ describe("ServiceRequest Entity", () => {
         });
 
       expect(() => {
-        newServiceRequest.rate(
-          newServiceRequest.provider,
-          newServiceRequest.client,
-          5
-        );
+        newServiceRequest.rate(newServiceRequest.provider);
       }).toThrow("The request cannot be rated on current stage");
     }
   );
@@ -875,11 +849,7 @@ describe("ServiceRequest Entity", () => {
     ]);
 
     expect(() => {
-      newServiceRequest.rate(
-        newServiceRequest.client,
-        newServiceRequest.provider,
-        5
-      );
+      newServiceRequest.rate(newServiceRequest.client);
     }).toThrow("The request can only be rated once");
   });
 
@@ -895,11 +865,7 @@ describe("ServiceRequest Entity", () => {
     ]);
 
     expect(() => {
-      newServiceRequest.rate(
-        newServiceRequest.provider,
-        newServiceRequest.client,
-        5
-      );
+      newServiceRequest.rate(newServiceRequest.provider);
     }).toThrow("The request can only be rated once");
   });
 });

@@ -13,7 +13,13 @@ import {
   makeFakeUnderageProvider,
   makeFakeProviderWorkJob,
 } from "./provider.spec.fixture";
-import { makeFakeClient } from "@/domain/client/entity/client.spec.fixture";
+import {
+  makeFakeServiceRequest,
+  makeFakeServiceRequestLog,
+} from "@/domain/service-request/entity/service-request.spec.fixture";
+import ServiceRequest, {
+  StatusEnum,
+} from "@/domain/service-request/entity/service-request";
 
 describe("Provider Entity", () => {
   it("should not be underage", () => {
@@ -48,30 +54,6 @@ describe("Provider Entity", () => {
     provider.changeContact(newContact);
 
     expect(provider.contact).toBe(newContact);
-  });
-
-  it("should be able to rate", () => {
-    const provider = makeFakeProvider();
-    const client = makeFakeClient();
-
-    provider.rate(client, 5);
-    provider.rate(client, 1);
-    provider.rate(client, 3);
-
-    expect(client.rating).toEqual(3);
-  });
-
-  it("should not be able to rate ", () => {
-    const provider = makeFakeProvider();
-    const client = makeFakeClient();
-
-    expect(() => {
-      provider.rate(client, 0.99);
-    }).toThrow("Rating must be between 1 and 5");
-
-    expect(() => {
-      provider.rate(client, 5.01);
-    }).toThrow("Rating must be between 1 and 5");
   });
 
   it("should not be able to create if has no work", () => {
@@ -275,4 +257,104 @@ describe("Provider Entity", () => {
 
     expect(totalExpected).toEqual(totalCalculated);
   });
+
+  it("should be able to confirm a service request", () => {
+    const serviceRequest = makeFakeServiceRequest();
+
+    jest
+      .spyOn(ServiceRequest.prototype, "logs", "get")
+      .mockReturnValue([makeFakeServiceRequestLog()]);
+
+    serviceRequest.provider.confirmRequest(serviceRequest);
+
+    jest.restoreAllMocks();
+
+    expect(serviceRequest.logs.length).toEqual(1);
+    expect(serviceRequest.logs[0].status).toEqual(StatusEnum.CONFIRMED);
+    expect(serviceRequest.logs[0].by).toEqual(serviceRequest.provider);
+  });
+
+  it("should be able to refuse a service request", () => {
+    const serviceRequest = makeFakeServiceRequest();
+
+    jest
+      .spyOn(ServiceRequest.prototype, "logs", "get")
+      .mockReturnValue([makeFakeServiceRequestLog()]);
+
+    serviceRequest.provider.refuseRequest(serviceRequest);
+
+    jest.restoreAllMocks();
+
+    expect(serviceRequest.logs.length).toEqual(1);
+    expect(serviceRequest.logs[0].status).toEqual(StatusEnum.REFUSED);
+    expect(serviceRequest.logs[0].by).toEqual(serviceRequest.provider);
+  });
+
+  it("should be able to start a service request", () => {
+    const serviceRequest = makeFakeServiceRequest();
+
+    jest
+      .spyOn(ServiceRequest.prototype, "logs", "get")
+      .mockReturnValue([makeFakeServiceRequestLog(StatusEnum.CONFIRMED)]);
+
+    serviceRequest.provider.startRequest(serviceRequest);
+
+    jest.restoreAllMocks();
+
+    expect(serviceRequest.logs.length).toEqual(1);
+    expect(serviceRequest.logs[0].status).toEqual(StatusEnum.STARTED);
+    expect(serviceRequest.logs[0].by).toEqual(serviceRequest.provider);
+  });
+
+  it("should be able to finish a service request", () => {
+    const serviceRequest = makeFakeServiceRequest();
+
+    jest
+      .spyOn(ServiceRequest.prototype, "logs", "get")
+      .mockReturnValue([makeFakeServiceRequestLog(StatusEnum.STARTED)]);
+
+    serviceRequest.provider.finishRequest(serviceRequest);
+
+    jest.restoreAllMocks();
+
+    expect(serviceRequest.logs.length).toEqual(1);
+    expect(serviceRequest.logs[0].status).toEqual(StatusEnum.FINISHED);
+    expect(serviceRequest.logs[0].by).toEqual(serviceRequest.provider);
+  });
+
+  it.each([1, 2, 3, 4, 5, 1.23])(
+    "should be able to rate the service request client",
+    (rating) => {
+      const serviceRequest = makeFakeServiceRequest();
+
+      jest
+        .spyOn(ServiceRequest.prototype, "logs", "get")
+        .mockReturnValue([makeFakeServiceRequestLog(StatusEnum.FINISHED)]);
+
+      serviceRequest.provider.rateRequestClient(serviceRequest, rating);
+
+      jest.restoreAllMocks();
+
+      expect(serviceRequest.logs.length).toEqual(1);
+      expect(serviceRequest.logs[0].status).toEqual(StatusEnum.RATED);
+      expect(serviceRequest.logs[0].by).toEqual(serviceRequest.provider);
+
+      expect(serviceRequest.client.rating).toEqual(rating);
+    }
+  );
+
+  it.each([0, 6, 0.99, 5.01])(
+    "should not be able to rate the service request client",
+    (rating) => {
+      const serviceRequest = makeFakeServiceRequest();
+
+      jest
+        .spyOn(ServiceRequest.prototype, "logs", "get")
+        .mockReturnValue([makeFakeServiceRequestLog(StatusEnum.FINISHED)]);
+
+      expect(() => {
+        serviceRequest.provider.rateRequestClient(serviceRequest, rating);
+      }).toThrow("Rating must be between 1 and 5");
+    }
+  );
 });

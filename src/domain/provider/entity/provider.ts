@@ -5,6 +5,7 @@ import {
   UserDocument,
   UserEmail,
 } from "@/domain/@shared/value-object/user";
+import ServiceRequest from "@/domain/service-request/entity/service-request";
 
 import { Work, WorkJob } from "@/domain/work/work";
 
@@ -59,6 +60,27 @@ export default class Provider extends User {
       throw new Error("It's not possible to remove a non-practicable work");
 
     this._works.splice(workIndex, 1);
+  }
+
+  confirmRequest(serviceRequest: ServiceRequest): void {
+    serviceRequest.confirm(this);
+  }
+
+  refuseRequest(serviceRequest: ServiceRequest): void {
+    serviceRequest.refuse(this);
+  }
+
+  startRequest(serviceRequest: ServiceRequest): void {
+    serviceRequest.start(this);
+  }
+
+  finishRequest(serviceRequest: ServiceRequest): void {
+    serviceRequest.finish(this);
+  }
+
+  rateRequestClient(serviceRequest: ServiceRequest, rating: number): void {
+    this.rate(serviceRequest.client, rating);
+    serviceRequest.rate(this);
   }
 }
 
