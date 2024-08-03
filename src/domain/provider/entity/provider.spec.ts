@@ -3,7 +3,7 @@ import Provider, { ProviderWork, ProviderWorkJob } from "./provider";
 import {
   makeFakeUserContact,
   makeFakeUserEmail,
-} from "@/domain/@shared/entity/user.spec.fixture";
+} from "@/domain/user/entity/user.spec.fixture";
 
 import {
   makeFakeProviderWork,
@@ -23,7 +23,7 @@ import ServiceRequest, {
 
 describe("Provider Entity", () => {
   it("should not be underage", () => {
-    expect(makeFakeUnderageProvider).toThrow("Provider must not be underage");
+    expect(makeFakeUnderageProvider).toThrow("User must not be underage");
   });
 
   it("should be able to create if legal age", () => {
@@ -33,27 +33,27 @@ describe("Provider Entity", () => {
   it("should be able to change its name", () => {
     const provider = makeFakeProvider();
 
-    provider.changeName("New Name");
+    provider.user.changeName("New Name");
 
-    expect(provider.name).toBe("New Name");
+    expect(provider.user.name).toBe("New Name");
   });
 
   it("should be able to change its email", () => {
     const provider = makeFakeProvider();
 
     const newEmail = makeFakeUserEmail();
-    provider.changeEmail(newEmail);
+    provider.user.changeEmail(newEmail);
 
-    expect(provider.email).toBe(newEmail);
+    expect(provider.user.email).toBe(newEmail);
   });
 
   it("should be able to change its contact", () => {
     const provider = makeFakeProvider();
 
     const newContact = makeFakeUserContact();
-    provider.changeContact(newContact);
+    provider.user.changeContact(newContact);
 
-    expect(provider.contact).toBe(newContact);
+    expect(provider.user.contact).toBe(newContact);
   });
 
   it("should not be able to create if has no work", () => {
@@ -271,7 +271,7 @@ describe("Provider Entity", () => {
 
     expect(serviceRequest.logs.length).toEqual(1);
     expect(serviceRequest.logs[0].status).toEqual(StatusEnum.CONFIRMED);
-    expect(serviceRequest.logs[0].by).toEqual(serviceRequest.provider);
+    expect(serviceRequest.logs[0].by).toEqual(serviceRequest.provider.user);
   });
 
   it("should be able to refuse a service request", () => {
@@ -287,7 +287,7 @@ describe("Provider Entity", () => {
 
     expect(serviceRequest.logs.length).toEqual(1);
     expect(serviceRequest.logs[0].status).toEqual(StatusEnum.REFUSED);
-    expect(serviceRequest.logs[0].by).toEqual(serviceRequest.provider);
+    expect(serviceRequest.logs[0].by).toEqual(serviceRequest.provider.user);
   });
 
   it("should be able to start a service request", () => {
@@ -303,7 +303,7 @@ describe("Provider Entity", () => {
 
     expect(serviceRequest.logs.length).toEqual(1);
     expect(serviceRequest.logs[0].status).toEqual(StatusEnum.STARTED);
-    expect(serviceRequest.logs[0].by).toEqual(serviceRequest.provider);
+    expect(serviceRequest.logs[0].by).toEqual(serviceRequest.provider.user);
   });
 
   it("should be able to finish a service request", () => {
@@ -319,7 +319,7 @@ describe("Provider Entity", () => {
 
     expect(serviceRequest.logs.length).toEqual(1);
     expect(serviceRequest.logs[0].status).toEqual(StatusEnum.FINISHED);
-    expect(serviceRequest.logs[0].by).toEqual(serviceRequest.provider);
+    expect(serviceRequest.logs[0].by).toEqual(serviceRequest.provider.user);
   });
 
   it.each([1, 2, 3, 4, 5, 1.23])(
@@ -337,9 +337,9 @@ describe("Provider Entity", () => {
 
       expect(serviceRequest.logs.length).toEqual(1);
       expect(serviceRequest.logs[0].status).toEqual(StatusEnum.RATED);
-      expect(serviceRequest.logs[0].by).toEqual(serviceRequest.provider);
+      expect(serviceRequest.logs[0].by).toEqual(serviceRequest.provider.user);
 
-      expect(serviceRequest.client.rating).toEqual(rating);
+      expect(serviceRequest.client.user.rating).toEqual(rating);
     }
   );
 

@@ -3,7 +3,7 @@ import Client from "./client";
 import {
   makeFakeUserContact,
   makeFakeUserEmail,
-} from "@/domain/@shared/entity/user.spec.fixture";
+} from "@/domain/user/entity/user.spec.fixture";
 
 import {
   makeFakeClient,
@@ -21,7 +21,7 @@ import {
 
 describe("Client Entity", () => {
   it("should not be underage", () => {
-    expect(makeFakeUnderageClient).toThrow("Client must not be underage");
+    expect(makeFakeUnderageClient).toThrow("User must not be underage");
   });
 
   it("should be able to create if legal age", () => {
@@ -31,27 +31,27 @@ describe("Client Entity", () => {
   it("should be able to change its name", () => {
     const client = makeFakeClient();
 
-    client.changeName("New Name");
+    client.user.changeName("New Name");
 
-    expect(client.name).toBe("New Name");
+    expect(client.user.name).toBe("New Name");
   });
 
   it("should be able to change its email", () => {
     const client = makeFakeClient();
 
     const newEmail = makeFakeUserEmail();
-    client.changeEmail(newEmail);
+    client.user.changeEmail(newEmail);
 
-    expect(client.email).toBe(newEmail);
+    expect(client.user.email).toBe(newEmail);
   });
 
   it("should be able to change its contact", () => {
     const client = makeFakeClient();
 
     const newContact = makeFakeUserContact();
-    client.changeContact(newContact);
+    client.user.changeContact(newContact);
 
-    expect(client.contact).toBe(newContact);
+    expect(client.user.contact).toBe(newContact);
   });
 
   it("should be able to change its address", () => {
@@ -76,7 +76,7 @@ describe("Client Entity", () => {
     expect(scheduledRequest.when).toBe(when);
     expect(scheduledRequest.logs.length).toEqual(1);
     expect(scheduledRequest.logs[0].status).toEqual(StatusEnum.SCHEDULED);
-    expect(scheduledRequest.logs[0].by).toEqual(client);
+    expect(scheduledRequest.logs[0].by).toEqual(client.user);
   });
 
   it("should be able to reschedule a service request", () => {
@@ -94,7 +94,7 @@ describe("Client Entity", () => {
     expect(serviceRequest.when).toBe(when);
     expect(serviceRequest.logs.length).toEqual(1);
     expect(serviceRequest.logs[0].status).toEqual(StatusEnum.RESCHEDULED);
-    expect(serviceRequest.logs[0].by).toEqual(serviceRequest.client);
+    expect(serviceRequest.logs[0].by).toEqual(serviceRequest.client.user);
   });
 
   it("should be able to cancel a service request", () => {
@@ -111,7 +111,7 @@ describe("Client Entity", () => {
 
     expect(serviceRequest.logs.length).toEqual(1);
     expect(serviceRequest.logs[0].status).toEqual(StatusEnum.CANCELLED);
-    expect(serviceRequest.logs[0].by).toEqual(serviceRequest.client);
+    expect(serviceRequest.logs[0].by).toEqual(serviceRequest.client.user);
     expect(serviceRequest.logs[0].reason).toEqual(reason);
   });
 
@@ -128,7 +128,7 @@ describe("Client Entity", () => {
 
     expect(serviceRequest.logs.length).toEqual(1);
     expect(serviceRequest.logs[0].status).toEqual(StatusEnum.FINISHED);
-    expect(serviceRequest.logs[0].by).toEqual(serviceRequest.client);
+    expect(serviceRequest.logs[0].by).toEqual(serviceRequest.client.user);
   });
 
   it.each([1, 2, 3, 4, 5, 1.23])(
@@ -146,9 +146,9 @@ describe("Client Entity", () => {
 
       expect(serviceRequest.logs.length).toEqual(1);
       expect(serviceRequest.logs[0].status).toEqual(StatusEnum.RATED);
-      expect(serviceRequest.logs[0].by).toEqual(serviceRequest.client);
+      expect(serviceRequest.logs[0].by).toEqual(serviceRequest.client.user);
 
-      expect(serviceRequest.provider.rating).toEqual(rating);
+      expect(serviceRequest.provider.user.rating).toEqual(rating);
     }
   );
 

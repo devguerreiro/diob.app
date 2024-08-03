@@ -11,11 +11,11 @@ describe("Client Repository tests", () => {
 
     const data = {
       user: {
-        name: client.name,
-        document: client.document.value,
-        email: client.email.value,
-        contact: client.contact.value,
-        dob: client.dob,
+        name: client.user.name,
+        document: client.user.document.value,
+        email: client.user.email.value,
+        contact: client.user.contact.value,
+        dob: client.user.dob,
       },
       address_cep: client.address.value.cep,
       address_number: client.address.value.number,
@@ -25,12 +25,12 @@ describe("Client Repository tests", () => {
     const createdClient = {
       id: client.id,
       user: {
-        id: client.id,
-        name: client.name,
-        document: client.document.value,
-        email: client.email.value,
-        contact: client.contact.value,
-        dob: client.dob,
+        id: client.user.id,
+        name: client.user.name,
+        document: client.user.document.value,
+        email: client.user.email.value,
+        contact: client.user.contact.value,
+        dob: client.user.dob,
       },
       user_id: client.id,
       address_cep: client.address.value.cep,
@@ -68,11 +68,11 @@ describe("Client Repository tests", () => {
     const models = Array(5).fill({
       id: client.id,
       user: {
-        id: client.id,
-        name: client.name,
-        document: client.document.value,
-        email: client.email.value,
-        contact: client.contact.value,
+        id: client.user.id,
+        name: client.user.name,
+        document: client.user.document.value,
+        email: client.user.email.value,
+        contact: client.user.contact.value,
       },
     });
 
@@ -104,12 +104,12 @@ describe("Client Repository tests", () => {
     const model = {
       id: client.id,
       user: {
-        id: client.id,
-        name: client.name,
-        document: client.document.value,
-        email: client.email.value,
-        contact: client.contact.value,
-        dob: client.dob,
+        id: client.user.id,
+        name: client.user.name,
+        document: client.user.document.value,
+        email: client.user.email.value,
+        contact: client.user.contact.value,
+        dob: client.user.dob,
       },
       user_id: client.id,
       address_cep: client.address.value.cep,
@@ -152,7 +152,7 @@ describe("Client Repository tests", () => {
 
     const data = {
       user: {
-        id: client.id,
+        id: client.user.id,
         name: "New Name",
         email: "new@email.com",
         contact: "123456789",
@@ -165,12 +165,12 @@ describe("Client Repository tests", () => {
     const updatedModel = {
       id: client.id,
       user: {
-        id: client.id,
+        id: client.user.id,
         name: "New Name",
-        document: client.document.value,
+        document: client.user.document.value,
         email: "new@email.com",
         contact: "123456789",
-        dob: client.dob,
+        dob: client.user.dob,
       },
       user_id: client.id,
       address_cep: "123456",

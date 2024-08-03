@@ -4,9 +4,9 @@ import {
   UserDocument,
   UserContact,
   UserEmail,
-} from "@/domain/@shared/value-object/user";
+} from "@/domain/user/value-object/user";
 
-export default abstract class User {
+export default class User {
   private _ratings: Array<number> = [];
 
   constructor(
@@ -65,7 +65,7 @@ export default abstract class User {
     const age = dayjs().diff(dayjs(this._dob), "year");
 
     if (age < 18) {
-      throw new Error(`${this.constructor.name} must not be underage`);
+      throw new Error(`User must not be underage`);
     }
   }
 

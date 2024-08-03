@@ -1,35 +1,32 @@
-import User from "@/domain/@shared/entity/user";
+import User from "@/domain/user/entity/user";
 
-import {
-  UserContact,
-  UserDocument,
-  UserEmail,
-} from "@/domain/@shared/value-object/user";
 import ServiceRequest from "@/domain/service-request/entity/service-request";
 
 import { Work, WorkJob } from "@/domain/work/work";
 
-export default class Provider extends User {
+export default class Provider {
   constructor(
-    id: string,
-    name: string,
-    document: UserDocument,
-    email: UserEmail,
-    contact: UserContact,
-    dob: Date,
+    private _id: string,
+    private _user: User,
     private _works: Array<ProviderWork>
   ) {
-    super(id, name, document, email, contact, dob);
-
     this.validate();
+  }
+
+  get id(): string {
+    return this._id;
   }
 
   get works(): Array<ProviderWork> {
     return this._works;
   }
 
+  get user(): User {
+    return this._user;
+  }
+
   validate(): void {
-    super.validate();
+    this._user.validate();
 
     if (this._works.length === 0)
       throw new Error("Provider must have at least one work");
@@ -63,24 +60,24 @@ export default class Provider extends User {
   }
 
   confirmRequest(serviceRequest: ServiceRequest): void {
-    serviceRequest.confirm(this);
+    serviceRequest.confirm(this._user);
   }
 
   refuseRequest(serviceRequest: ServiceRequest): void {
-    serviceRequest.refuse(this);
+    serviceRequest.refuse(this._user);
   }
 
   startRequest(serviceRequest: ServiceRequest): void {
-    serviceRequest.start(this);
+    serviceRequest.start(this._user);
   }
 
   finishRequest(serviceRequest: ServiceRequest): void {
-    serviceRequest.finish(this);
+    serviceRequest.finish(this._user);
   }
 
   rateRequestClient(serviceRequest: ServiceRequest, rating: number): void {
-    this.rate(serviceRequest.client, rating);
-    serviceRequest.rate(this);
+    this._user.rate(serviceRequest.client.user, rating);
+    serviceRequest.rate(this._user);
   }
 }
 

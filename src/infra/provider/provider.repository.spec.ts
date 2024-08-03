@@ -11,11 +11,11 @@ describe("Provider Repository tests", () => {
 
     const data = {
       user: {
-        name: provider.name,
-        document: provider.document.value,
-        email: provider.email.value,
-        contact: provider.contact.value,
-        dob: provider.dob,
+        name: provider.user.name,
+        document: provider.user.document.value,
+        email: provider.user.email.value,
+        contact: provider.user.contact.value,
+        dob: provider.user.dob,
       },
       works: provider.works.map((work) => ({
         work_id: work.work.id,
@@ -31,12 +31,12 @@ describe("Provider Repository tests", () => {
     const createdProvider = {
       id: provider.id,
       user: {
-        id: provider.id,
-        name: provider.name,
-        document: provider.document.value,
-        email: provider.email.value,
-        contact: provider.contact.value,
-        dob: provider.dob,
+        id: provider.user.id,
+        name: provider.user.name,
+        document: provider.user.document.value,
+        email: provider.user.email.value,
+        contact: provider.user.contact.value,
+        dob: provider.user.dob,
       },
       works: provider.works.map((work) => ({
         work: {
@@ -122,11 +122,11 @@ describe("Provider Repository tests", () => {
     const models = Array(5).fill({
       id: provider.id,
       user: {
-        id: provider.id,
-        name: provider.name,
-        document: provider.document.value,
-        email: provider.email.value,
-        contact: provider.contact.value,
+        id: provider.user.id,
+        name: provider.user.name,
+        document: provider.user.document.value,
+        email: provider.user.email.value,
+        contact: provider.user.contact.value,
       },
     });
 
@@ -158,12 +158,12 @@ describe("Provider Repository tests", () => {
     const model = {
       id: provider.id,
       user: {
-        id: provider.id,
-        name: provider.name,
-        document: provider.document.value,
-        email: provider.email.value,
-        contact: provider.contact.value,
-        dob: provider.dob,
+        id: provider.user.id,
+        name: provider.user.name,
+        document: provider.user.document.value,
+        email: provider.user.email.value,
+        contact: provider.user.contact.value,
+        dob: provider.user.dob,
       },
       works: provider.works.map((work) => ({
         work: {
@@ -245,22 +245,22 @@ describe("Provider Repository tests", () => {
 
     const data = {
       user: {
-        id: provider.id,
-        name: provider.name,
-        email: provider.email.value,
-        contact: provider.contact.value,
+        id: provider.user.id,
+        name: provider.user.name,
+        email: provider.user.email.value,
+        contact: provider.user.contact.value,
       },
     };
 
     const updatedProvider = {
       id: provider.id,
       user: {
-        id: provider.id,
-        name: provider.name,
-        document: provider.document.value,
-        email: provider.email.value,
-        contact: provider.contact.value,
-        dob: provider.dob,
+        id: provider.user.id,
+        name: provider.user.name,
+        document: provider.user.document.value,
+        email: provider.user.email.value,
+        contact: provider.user.contact.value,
+        dob: provider.user.dob,
       },
       works: provider.works.map((work) => ({
         work: {

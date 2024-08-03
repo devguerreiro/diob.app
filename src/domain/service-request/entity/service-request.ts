@@ -1,4 +1,4 @@
-import User from "@/domain/@shared/entity/user";
+import User from "@/domain/user/entity/user";
 import LogInterface from "@/domain/@shared/interface/log";
 
 import Client from "@/domain/client/entity/client";
@@ -63,7 +63,7 @@ export default class ServiceRequest {
   }
 
   schedule(by: User): void {
-    if (by !== this._client) {
+    if (by !== this._client.user) {
       throw new Error("Only the client can schedule the request");
     } else if (this.logs.length > 0) {
       throw new Error("The request cannot be scheduled on current stage");
@@ -73,7 +73,7 @@ export default class ServiceRequest {
   }
 
   reschedule(by: User, when: Date): void {
-    if (by !== this._client) {
+    if (by !== this._client.user) {
       throw new Error("Only the client can reschedule the request");
     } else if (
       ![StatusEnum.SCHEDULED, StatusEnum.RESCHEDULED].includes(
@@ -88,7 +88,7 @@ export default class ServiceRequest {
   }
 
   cancel(by: User, reason: string): void {
-    if (by !== this._client) {
+    if (by !== this._client.user) {
       throw new Error("Only the client can cancel the request");
     } else if (
       this.logs.some(
@@ -110,7 +110,7 @@ export default class ServiceRequest {
   }
 
   confirm(by: User): void {
-    if (by !== this._provider) {
+    if (by !== this._provider.user) {
       throw new Error("Only the provider can confirm the request");
     } else if (
       ![StatusEnum.SCHEDULED, StatusEnum.RESCHEDULED].includes(
@@ -124,7 +124,7 @@ export default class ServiceRequest {
   }
 
   refuse(by: User): void {
-    if (by !== this._provider) {
+    if (by !== this._provider.user) {
       throw new Error("Only the provider can refuse the request");
     } else if (
       ![StatusEnum.SCHEDULED, StatusEnum.RESCHEDULED].includes(
@@ -138,7 +138,7 @@ export default class ServiceRequest {
   }
 
   start(by: User): void {
-    if (by !== this._provider) {
+    if (by !== this._provider.user) {
       throw new Error("Only the provider can start the request");
     } else if (this.currentLog.status !== StatusEnum.CONFIRMED) {
       throw new Error("The request cannot be started on current stage");

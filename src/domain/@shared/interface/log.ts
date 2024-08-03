@@ -1,4 +1,4 @@
-import User from "@/domain/@shared/entity/user";
+import User from "@/domain/user/entity/user";
 
 export default interface LogInterface<T> {
   status: T;
